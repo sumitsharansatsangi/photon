@@ -1,10 +1,8 @@
 import 'dart:io';
-import 'package:adaptive_theme/adaptive_theme.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
-import 'package:graphic/graphic.dart';
+import 'package:refreshed/refreshed.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:photon/components/snackbar.dart';
@@ -19,18 +17,17 @@ import '../../components/progress_line.dart';
 import '../../methods/methods.dart';
 import '../../models/sender_model.dart';
 import '../../services/file_services.dart';
-import 'package:path/path.dart' as p;
 
 class ProgressPage extends StatefulWidget {
   final SenderModel? senderModel;
   final int secretCode;
   final String dataType;
   const ProgressPage({
-    Key? key,
+    super.key,
     required this.senderModel,
     required this.secretCode,
     required this.dataType,
-  }) : super(key: key);
+  });
 
   @override
   State<ProgressPage> createState() => _ProgressPageState();
@@ -59,470 +56,436 @@ class _ProgressPageState extends State<ProgressPage> {
 
   @override
   Widget build(BuildContext context) {
-    var getInstance = GetIt.I<PercentageController>();
-    var rawTextController = GetIt.I<RawTextController>();
+    final photonController = Get.putOrFind(() => PhotonController());
     var width = MediaQuery.of(context).size.width > 720
         ? MediaQuery.of(context).size.width / 1.8
         : MediaQuery.of(context).size.width / 1.4;
 
     return WillPopScope(
-      child: ValueListenableBuilder(
-        valueListenable: AdaptiveTheme.of(context).modeChangeNotifier,
-        builder: (_, AdaptiveThemeMode mode, __) {
-          return Scaffold(
-            backgroundColor: mode.isDark
-                ? const Color.fromARGB(255, 13, 16, 18)
-                : Colors.white,
-            appBar: AppBar(
-              backgroundColor: mode.isDark ? Colors.blueGrey.shade900 : null,
-              title: Obx(
-                () => Text(
-                  widget.dataType == "raw_text"
-                      ? rawTextController.rawText.value == ""
-                          ? "Receiving"
-                          : "Received"
-                      : getInstance.isFinished.value
-                          ? "Received"
-                          : ' Receiving',
-                ),
-              ),
-              flexibleSpace: mode.isLight
-                  ? Container(
-                      decoration: appBarGradient,
-                    )
-                  : null,
-              leading: BackButton(
-                color: Colors.white,
-                onPressed: () {
-                  progressPageAlertDialog(context);
-                },
-              ),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Obx(
+            () => Text(
+              widget.dataType == "raw_text"
+                  ? photonController.rawText.value == ""
+                      ? "Receiving"
+                      : "Received"
+                  : photonController.isFinished.value
+                      ? "Received"
+                      : ' Receiving',
             ),
-            body: widget.dataType == "raw_text"
-                ? Center(
-                    child: Obx(
-                      () {
-                        return rawTextController.rawText.value == ""
-                            ? const CircularProgressIndicator()
-                            : SizedBox(
-                                width: MediaQuery.of(context).size.width / 1.2,
-                                height:
-                                    MediaQuery.of(context).size.height / 1.4,
-                                child: Center(
-                                  child: Flex(
-                                    direction: width > 720
-                                        ? Axis.horizontal
-                                        : Axis.vertical,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: SizedBox(
-                                          width: 480,
-                                          height: 480,
-                                          child: Lottie.asset(
-                                            'assets/lottie/text_received.json',
-                                            width: 480,
-                                            height: 480,
-                                          ),
-                                        ),
+          ),
+          flexibleSpace: photonController.isDarkTheme.value
+              ? null
+              : const DecoratedBox(
+                  decoration: appBarGradient,
+                ),
+          leading: BackButton(
+            color: Colors.white,
+            onPressed: () {
+              progressPageAlertDialog(context);
+            },
+          ),
+        ),
+        body: widget.dataType == "raw_text"
+            ? Center(
+                child: Obx(
+                  () {
+                    return photonController.rawText.value == ""
+                        ? const CircularProgressIndicator()
+                        : SizedBox(
+                            width: MediaQuery.of(context).size.width / 1.2,
+                            height: MediaQuery.of(context).size.height / 1.4,
+                            child: Center(
+                              child: Flex(
+                                direction: width > 720
+                                    ? Axis.horizontal
+                                    : Axis.vertical,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: SizedBox(
+                                      width: 480,
+                                      height: 480,
+                                      child: Lottie.asset(
+                                        'assets/lottie/text_received.json',
+                                        width: 480,
+                                        height: 480,
                                       ),
-                                      Expanded(
-                                        flex: width > 720 ? 1 : 2,
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(1.0),
-                                            child: Stack(
-                                              alignment: Alignment.center,
-                                              children: [
-                                                Card(
-                                                  child: Center(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Text(
-                                                        rawTextController
-                                                            .rawText.value,
-                                                        textAlign:
-                                                            TextAlign.justify,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontSize: width > 720
-                                                              ? 15
-                                                              : 12,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  top: 10,
-                                                  right: 10,
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                        color: mode.isDark
-                                                            ? const Color
-                                                                .fromARGB(
-                                                                255, 46, 46, 46)
-                                                            : Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8)),
-                                                    child: IconButton(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              61,
-                                                              255,
-                                                              155),
-                                                      onPressed: () async {
-                                                        await Clipboard.setData(
-                                                            ClipboardData(
-                                                                text:
-                                                                    rawTextController
-                                                                        .rawText
-                                                                        .value));
-                                                        if (mounted) {
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                            const SnackBar(
-                                                              content: Text(
-                                                                  "Copied to clipboard"),
-                                                            ),
-                                                          );
-                                                        }
-                                                      },
-                                                      icon: const Icon(Icons
-                                                          .copy_all_rounded),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const Positioned(
-                                                  top: 10,
-                                                  child: Text(
-                                                    "Your text is here",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                ),
-                                              ],
-                                            )),
-                                      )
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              );
-                      },
-                    ),
-                  )
-                : FutureBuilder(
-                    future: FileMethods.getFileNames(widget.senderModel!),
-                    builder: (context, AsyncSnapshot snap) {
-                      if (snap.connectionState == ConnectionState.done) {
-                        return SingleChildScrollView(
-                          physics: const ScrollPhysics(),
-                          child: Column(
-                            children: [
-                              Dashboard(
-                                mode: mode,
-                                getInstance: getInstance,
-                                width: width,
-                              ),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: snap.data.length,
-                                itemBuilder: (context, item) {
-                                  return Focus(
-                                    child: Obx(
-                                      () {
-                                        double progressLineWidth =
-                                            ((width - 80) *
-                                                (getInstance.percentage[item]
-                                                        as RxDouble)
-                                                    .value /
-                                                100);
-
-                                        return UnconstrainedBox(
-                                            child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: GestureDetector(
-                                            onTap: () async {
-                                              openFile(snap.data[item],
-                                                  widget.senderModel!);
-                                            },
-                                            child: Card(
-                                              // color: Colors.blue.shade100,
-                                              elevation: 2,
-                                              clipBehavior: Clip.antiAlias,
-                                              child: SizedBox(
-                                                width: width + 60,
-                                                height: 100,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    const SizedBox(
-                                                      width: 10,
+                                  Expanded(
+                                    flex: width > 720 ? 1 : 2,
+                                    child: Padding(
+                                        padding: const EdgeInsets.all(1.0),
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Card(
+                                              child: Center(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Text(
+                                                    photonController
+                                                        .rawText.value,
+                                                    textAlign:
+                                                        TextAlign.justify,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          width > 720 ? 15 : 12,
                                                     ),
-                                                    getFileIcon(snap.data[item]
-                                                        .toString()
-                                                        .split('.')
-                                                        .last),
-                                                    Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .only(
-                                                                  left: 8.0,
-                                                                  top: 8.0),
-                                                          child: SizedBox(
-                                                            width: width / 1.4,
-                                                            child: Text(
-                                                              snap.data![item],
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        SizedBox(
-                                                          width: width - 80,
-                                                          child: CustomPaint(
-                                                            painter:
-                                                                ProgressLine(
-                                                              pos:
-                                                                  progressLineWidth,
-                                                            ),
-                                                            child: Container(),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 40,
-                                                        ),
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(0.0),
-                                                          child: Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .only(
-                                                                        left:
-                                                                            2.5),
-                                                                child: getStatusWidget(
-                                                                    getInstance
-                                                                            .fileStatus[
-                                                                        item],
-                                                                    item),
-                                                              ),
-                                                              if (getInstance
-                                                                      .fileStatus[
-                                                                          item]
-                                                                      .value ==
-                                                                  "downloading") ...{
-                                                                Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .only(
-                                                                          left:
-                                                                              10),
-                                                                  child:
-                                                                      SizedBox(
-                                                                    width:
-                                                                        width /
-                                                                            1.8,
-                                                                    child: Text(
-                                                                      getInstance
-                                                                          .estimatedTime
-                                                                          .value,
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize: MediaQuery.of(context).size.width >
-                                                                                720
-                                                                            ? 16
-                                                                            : 12.5,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                )
-                                                              }
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    const SizedBox(
-                                                      width: 10,
-                                                    ),
-                                                    if (getInstance
-                                                        .isCancelled[item]
-                                                        .value) ...{
-                                                      IconButton(
-                                                        icon: const Padding(
-                                                          padding:
-                                                              EdgeInsets.all(0),
-                                                          child: Icon(
-                                                            Icons.refresh,
-                                                            semanticLabel:
-                                                                'Restart',
-                                                          ),
-                                                        ),
-                                                        onPressed: () {
-                                                          //restart download
-                                                          getInstance
-                                                              .isCancelled[item]
-                                                              .value = false;
-                                                          PhotonReceiver
-                                                              .getFile(
-                                                            snap.data[item],
-                                                            item,
-                                                            widget.senderModel!,
-                                                          );
-                                                        },
-                                                      )
-                                                    } else if (!getInstance
-                                                        .isReceived[item]
-                                                        .value) ...{
-                                                      IconButton(
-                                                        icon: const Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  0.0),
-                                                          child: Icon(
-                                                            Icons.cancel,
-                                                            semanticLabel:
-                                                                'Cancel receive',
-                                                          ),
-                                                        ),
-                                                        onPressed: () {
-                                                          getInstance
-                                                              .isCancelled[item]
-                                                              .value = true;
-                                                          getInstance
-                                                              .cancelTokenList[
-                                                                  item]
-                                                              .cancel();
-                                                        },
-                                                      )
-                                                    } else ...{
-                                                      const Padding(
-                                                          padding:
-                                                              EdgeInsets.all(8),
-                                                          child: Icon(Icons
-                                                              .done_rounded))
-                                                    },
-                                                  ],
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ));
-                                      },
-                                    ),
-                                  );
-                                },
-                              )
-                            ],
-                          ),
-                        );
-                      } else if (snap.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      } else {
-                        return Center(
-                          child: Card(
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              height: 200,
-                              child: const Text('Something went wrong'),
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-            floatingActionButton: widget.dataType == "raw_text"
-                ? FloatingActionButton.extended(
-                    label: const Text('Export',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black)),
-                    onPressed: () async {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text("Enter file name to save"),
-                            content: TextField(
-                              controller: fileNameController,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
+                                            Positioned(
+                                              top: 10,
+                                              right: 10,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                    color: photonController
+                                                            .isDarkTheme.value
+                                                        ? const Color.fromARGB(
+                                                            255, 46, 46, 46)
+                                                        : Colors.white,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8)),
+                                                child: IconButton(
+                                                  color: const Color.fromARGB(
+                                                      255, 61, 255, 155),
+                                                  onPressed: () async {
+                                                    await Clipboard.setData(
+                                                        ClipboardData(
+                                                            text:
+                                                                photonController
+                                                                    .rawText
+                                                                    .value));
+                                                    if (mounted &&
+                                                        context.mounted) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                              "Copied to clipboard"),
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                  icon: const Icon(
+                                                      Icons.copy_all_rounded),
+                                                ),
+                                              ),
+                                            ),
+                                            const Positioned(
+                                              top: 10,
+                                              child: Text(
+                                                "Your text is here",
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        )),
+                                  )
+                                ],
                               ),
                             ),
-                            actions: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text("Cancel"),
-                              ),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  await FileMethods.saveTextFile(
-                                      rawTextController.rawText.value,
-                                      fileNameController.text);
-                                  if (mounted) {
-                                    Navigator.of(context).pop();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                "File is saved as ${await FileMethods.getTextFilePath(fileNameController.text)}")));
-                                  }
-                                },
-                                child: const Text(
-                                  "Save",
-                                ),
-                              ),
-                            ],
                           );
-                        },
+                  },
+                ),
+              )
+            : FutureBuilder(
+                future: FileMethods.getFileNames(widget.senderModel!),
+                builder: (context, AsyncSnapshot snap) {
+                  if (snap.connectionState == ConnectionState.done) {
+                    return SingleChildScrollView(
+                      physics: const ScrollPhysics(),
+                      child: Column(
+                        children: [
+                          Dashboard(
+                            width: width,
+                          ),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: snap.data.length,
+                            itemBuilder: (context, item) {
+                              return Focus(
+                                child: Obx(
+                                  () {
+                                    double progressLineWidth = ((width - 80) *
+                                        (photonController.percentage[item]
+                                                as RxDouble)
+                                            .value /
+                                        100);
+
+                                    return UnconstrainedBox(
+                                        child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          openFile(snap.data[item],
+                                              widget.senderModel!);
+                                        },
+                                        child: Card(
+                                          // color: Colors.blue.shade100,
+                                          elevation: 2,
+                                          clipBehavior: Clip.antiAlias,
+                                          child: SizedBox(
+                                            width: width + 60,
+                                            height: 100,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(
+                                                  width: 10,
+                                                ),
+                                                getFileIcon(snap.data[item]
+                                                    .toString()
+                                                    .split('.')
+                                                    .last),
+                                                Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 8.0,
+                                                              top: 8.0),
+                                                      child: SizedBox(
+                                                        width: width / 1.4,
+                                                        child: Text(
+                                                          snap.data![item],
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      width: width - 80,
+                                                      child: CustomPaint(
+                                                        painter: ProgressLine(
+                                                          pos:
+                                                              progressLineWidth,
+                                                        ),
+                                                        child: Container(),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 40,
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              0.0),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .only(
+                                                                    left: 2.5),
+                                                            child: getStatusWidget(
+                                                                photonController
+                                                                        .fileStatus[
+                                                                    item],
+                                                                item),
+                                                          ),
+                                                          if (photonController
+                                                                  .fileStatus[
+                                                                      item]
+                                                                  .value ==
+                                                              "downloading") ...{
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      left: 10),
+                                                              child: SizedBox(
+                                                                width:
+                                                                    width / 1.8,
+                                                                child: Text(
+                                                                  photonController
+                                                                      .estimatedTime
+                                                                      .value,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontSize: MediaQuery.of(context).size.width >
+                                                                            720
+                                                                        ? 16
+                                                                        : 12.5,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            )
+                                                          }
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                  width: 10,
+                                                ),
+                                                if (photonController
+                                                    .isCancelled[item]
+                                                    .value) ...{
+                                                  IconButton(
+                                                    icon: const Padding(
+                                                      padding:
+                                                          EdgeInsets.all(0),
+                                                      child: Icon(
+                                                        Icons.refresh,
+                                                        semanticLabel:
+                                                            'Restart',
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      //restart download
+                                                      photonController
+                                                          .isCancelled[item]
+                                                          .value = false;
+                                                      PhotonReceiver.getFile(
+                                                        snap.data[item],
+                                                        item,
+                                                        widget.senderModel!,
+                                                      );
+                                                    },
+                                                  )
+                                                } else if (!photonController
+                                                    .isReceived[item]
+                                                    .value) ...{
+                                                  IconButton(
+                                                    icon: const Padding(
+                                                      padding:
+                                                          EdgeInsets.all(0.0),
+                                                      child: Icon(
+                                                        Icons.cancel,
+                                                        semanticLabel:
+                                                            'Cancel receive',
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      photonController
+                                                          .isCancelled[item]
+                                                          .value = true;
+                                                      photonController
+                                                          .cancelTokenList[item]
+                                                          .cancel();
+                                                    },
+                                                  )
+                                                } else ...{
+                                                  const Padding(
+                                                      padding:
+                                                          EdgeInsets.all(8),
+                                                      child: Icon(
+                                                          Icons.done_rounded))
+                                                },
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ));
+                                  },
+                                ),
+                              );
+                            },
+                          )
+                        ],
+                      ),
+                    );
+                  } else if (snap.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else {
+                    return Center(
+                      child: Card(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: 200,
+                          child: const Text('Something went wrong'),
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+        floatingActionButton: widget.dataType == "raw_text"
+            ? FloatingActionButton.extended(
+                label: const Text('Export',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.black)),
+                onPressed: () async {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text("Enter file name to save"),
+                        content: TextField(
+                          controller: fileNameController,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                          ),
+                        ),
+                        actions: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await FileMethods.saveTextFile(
+                                  photonController.rawText.value,
+                                  fileNameController.text);
+                              if (mounted && context.mounted) {
+                                Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                    content: Text(
+                                        "File is saved as ${await FileMethods.getTextFilePath(fileNameController.text)}")));
+                              }
+                            },
+                            child: const Text(
+                              "Save",
+                            ),
+                          ),
+                        ],
                       );
                     },
-                    icon: const Icon(
-                      Icons.download_rounded,
-                      color: Colors.black,
-                    ),
-                    backgroundColor: mode.isDark
-                        ? const Color.fromARGB(230, 80, 255, 124)
-                        : Colors.blue,
-                  )
-                : null,
-          );
-        },
+                  );
+                },
+                icon: const Icon(
+                  Icons.download_rounded,
+                  color: Colors.black,
+                ),
+                backgroundColor: photonController.isDarkTheme.value
+                    ? const Color.fromARGB(230, 80, 255, 124)
+                    : Colors.blue,
+              )
+            : null,
       ),
       onWillPop: () async {
         willPop = await progressPageWillPopDialog(context);

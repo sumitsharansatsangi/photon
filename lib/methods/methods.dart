@@ -3,9 +3,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
+import 'package:refreshed/get_rx/src/rx_types/rx_types.dart';
+import 'package:refreshed/instance_manager.dart';
 import '../controllers/controllers.dart';
 
 String formatTime(int seconds) {
@@ -53,17 +53,17 @@ int getRandomNumber() {
 }
 
 generatePercentageList(len) {
-  var getInstance = GetIt.I<PercentageController>();
-  getInstance.percentage = RxList.generate(len, (index) {
+  final photonController = Get.putOrFind(() => PhotonController());
+  photonController.percentage = RxList.generate(len, (index) {
     return RxDouble(0.0);
   });
-  getInstance.isCancelled = RxList.generate(len, (index) {
+  photonController.isCancelled = RxList.generate(len, (index) {
     return RxBool(false);
   });
-  getInstance.isReceived = RxList.generate(len, (index) {
+  photonController.isReceived = RxList.generate(len, (index) {
     return RxBool(false);
   });
-  getInstance.fileStatus =
+  photonController.fileStatus =
       RxList.generate(len, (index) => RxString(Status.waiting.name));
 }
 
@@ -90,7 +90,7 @@ Widget getFileIcon(String extn) {
     case 'jpeg':
       return SvgPicture.asset(
         'assets/icons/jpeg.svg',
-        color: Colors.cyanAccent,
+        colorFilter: const ColorFilter.mode(Colors.cyanAccent, BlendMode.srcIn),
         width: 30,
         height: 30,
       );
@@ -103,14 +103,15 @@ Widget getFileIcon(String extn) {
     case 'exe':
       return SvgPicture.asset(
         'assets/icons/exe.svg',
-        color: Colors.blueAccent,
+        colorFilter: const ColorFilter.mode(Colors.blueAccent, BlendMode.srcIn),
         width: 30,
         height: 30,
       );
     case 'apk':
       return SvgPicture.asset(
         'assets/icons/android.svg',
-        color: Colors.greenAccent.shade400,
+        colorFilter:
+            ColorFilter.mode(Colors.greenAccent.shade400, BlendMode.srcIn),
         width: 30,
         height: 30,
       );
@@ -141,8 +142,8 @@ getStatusWidget(RxString status, idx) {
     case "waiting":
       return const Text("Waiting");
     case "downloading":
-      return Text(
-          '${GetIt.I.get<PercentageController>().percentage[idx].value}');
+      final photonController = Get.putOrFind(() => PhotonController());
+      return Text('${photonController.percentage[idx].value}');
     case "cancelled":
       return const Text("Cancelled");
     case "error":
@@ -169,12 +170,12 @@ storeHistory(Box box, String savePath) {
   box.put('fileInfo', fileInfo);
 }
 
-Future<void> storeSentFileHistory(List<String?> files) async {
-  Box box = await Hive.openBox('appData');
-  if (box.get('sentHistory') == null) {
-    box.put('sentHistory', []);
+void storeSentFileHistory(List<String?> files) {
+  final photonController = Get.putOrFind(() => PhotonController());
+  if (photonController.box.get('sentHistory') == null) {
+    photonController.box.put('sentHistory', []);
   }
-  List sentFiles = box.get('sentHistory');
+  List sentFiles = photonController.box.get('sentHistory');
 
   sentFiles.insertAll(
     0,
@@ -188,26 +189,25 @@ Future<void> storeSentFileHistory(List<String?> files) async {
   );
 }
 
-getSentFileHistory() async {
-  Box box = await Hive.openBox('appData');
-  List sentFilesHistory = box.get('sentHistory') as List;
+getSentFileHistory() {
+  final photonController = Get.putOrFind(() => PhotonController());
+  List sentFilesHistory = photonController.box.get('sentHistory') as List;
   return sentFilesHistory;
 }
 
-getHistory() async {
-  var box = await Hive.openBox('appData');
+getHistory() {
+  var box = Hive.box(name: 'appData');
   return box.get('fileInfo');
 }
 
-clearSentHistory() async {
-  var box = await Hive.openBox('appData');
+clearSentHistory() {
+  var box = Hive.box(name: 'appData');
   box.delete('sentHistory');
 }
 
 clearHistory() async {
-  Hive.openBox('appData').then((box) => box.delete('fileInfo')).catchError((e) {
-    debugPrint(e.toString());
-  });
+  final box = Hive.box(name: 'appData');
+  box.delete('fileInfo');
 }
 
 String getDateString(DateTime date) {
@@ -222,7 +222,7 @@ String getDateString(DateTime date) {
 }
 
 processReceiversData(Map<String, dynamic> newReceiverData) {
-  var inst = GetIt.I.get<ReceiverDataController>();
+  final inst = Get.putOrFind(() => PhotonController());
   inst.receiverMap.addAll(
     {
       "${newReceiverData["receiverID"]}": {

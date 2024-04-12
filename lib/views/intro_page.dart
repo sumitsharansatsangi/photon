@@ -1,18 +1,14 @@
-import 'dart:io';
-
-import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive/hive.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:lottie/lottie.dart';
-import 'package:photon/components/snackbar.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import "package:permission_handler/permission_handler.dart";
+import 'package:photon/controllers/controllers.dart';
+import 'package:refreshed/refreshed.dart';
+// import 'package:photon/components/snackbar.dart';
 
 class IntroPage extends StatefulWidget {
-  const IntroPage({Key? key}) : super(key: key);
+  const IntroPage({super.key});
 
   @override
   State<IntroPage> createState() => _IntroPageState();
@@ -20,69 +16,55 @@ class IntroPage extends StatefulWidget {
 
 class _IntroPageState extends State<IntroPage> {
   List<bool> selected = List.generate(4, (index) => false);
-  Box box = Hive.box('appData');
+
   TextEditingController usernameController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    final photonController = Get.putOrFind(() => PhotonController());
     return SafeArea(
-      child: ValueListenableBuilder(
-          valueListenable: AdaptiveTheme.of(context).modeChangeNotifier,
-          builder: (_, AdaptiveThemeMode mode, __) {
-            return Scaffold(
-                body: IntroductionScreen(
-              globalBackgroundColor: mode.isDark ? Colors.black : null,
-              pages: getPages(),
-              onDone: () async {
-                if (usernameController.text.trim() != '') {
-                  box.put('username', usernameController.text.trim());
-                }
-                if (Platform.isAndroid || Platform.isIOS) {
-                  var _ = await Permission.storage.request();
-                  SharedPreferences prefInst =
-                      await SharedPreferences.getInstance();
-                  prefInst.setBool('isIntroRead', true);
-                  Navigator.of(context).pushReplacementNamed('/home');
-                } else {
-                  SharedPreferences prefInst =
-                      await SharedPreferences.getInstance();
-                  prefInst.setBool('isIntroRead', true);
-
-                  // ignore: use_build_context_synchronously
-                  Navigator.of(context).pushReplacementNamed('/home');
-                }
-              },
-              showSkipButton: false,
-              skipOrBackFlex: 0,
-              nextFlex: 0,
-              showBackButton: true,
-              back: const Icon(Icons.arrow_back_ios),
-              skip: const Text('Skip',
-                  style: TextStyle(fontWeight: FontWeight.w600)),
-              next: const Icon(Icons.arrow_forward),
-              done: const Text('Done',
-                  style: TextStyle(fontWeight: FontWeight.w600)),
-              curve: Curves.fastLinearToSlowEaseIn,
-              controlsMargin: const EdgeInsets.all(16),
-              controlsPadding: kIsWeb
-                  ? const EdgeInsets.all(12.0)
-                  : const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
-              dotsDecorator: DotsDecorator(
-                size: const Size(10.0, 10.0),
-                color: mode.isDark ? const Color(0xFFBDBDBD) : Colors.black,
-                activeSize: const Size(22.0, 10.0),
-                activeShape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                ),
-              ),
-              dotsContainerDecorator: ShapeDecoration(
-                color: mode.isDark ? Colors.black87 : Colors.white,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                ),
-              ),
-            ));
-          }),
-    );
+        child: Scaffold(
+            body: IntroductionScreen(
+      globalBackgroundColor:
+          photonController.isDarkTheme.value ? Colors.black : null,
+      pages: getPages(),
+      onDone: () async {
+        if (usernameController.text.trim() != '') {
+          photonController.box.put('username', usernameController.text.trim());
+        }
+        Navigator.of(context).pushReplacementNamed('/home');
+        photonController.box.put('isIntroRead', true);
+      },
+      showSkipButton: false,
+      skipOrBackFlex: 0,
+      nextFlex: 0,
+      showBackButton: true,
+      back: const Icon(Icons.arrow_back_ios),
+      skip: const Text('Skip', style: TextStyle(fontWeight: FontWeight.w600)),
+      next: const Icon(Icons.arrow_forward),
+      done: const Text('Done', style: TextStyle(fontWeight: FontWeight.w600)),
+      curve: Curves.fastLinearToSlowEaseIn,
+      controlsMargin: const EdgeInsets.all(16),
+      controlsPadding: kIsWeb
+          ? const EdgeInsets.all(12.0)
+          : const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
+      dotsDecorator: DotsDecorator(
+        size: const Size(10.0, 10.0),
+        color: photonController.isDarkTheme.value
+            ? const Color(0xFFBDBDBD)
+            : Colors.black,
+        activeSize: const Size(22.0, 10.0),
+        activeShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25.0)),
+        ),
+      ),
+      dotsContainerDecorator: ShapeDecoration(
+        color:
+            photonController.isDarkTheme.value ? Colors.black87 : Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        ),
+      ),
+    )));
   }
 
   List<PageViewModel> getPages() {
@@ -184,10 +166,12 @@ class _IntroPageState extends State<IntroPage> {
                       itemBuilder: ((context, index) => Card(
                               child: GestureDetector(
                             onTap: () {
+                              final photonController =
+                                  Get.putOrFind(() => PhotonController());
                               setState(() {
                                 selected.fillRange(0, 4, false);
                                 selected[index] = true;
-                                box.put('avatarPath',
+                                photonController.box.put('avatarPath',
                                     'assets/avatars/${index + 1}.png');
                               });
                             },
@@ -203,7 +187,8 @@ class _IntroPageState extends State<IntroPage> {
                                       right: 5,
                                       child: SvgPicture.asset(
                                         'assets/icons/right_mark.svg',
-                                        color: Colors.white,
+                                        colorFilter: const ColorFilter.mode(
+                                            Colors.white, BlendMode.srcIn),
                                         width: 30,
                                       ),
                                     )

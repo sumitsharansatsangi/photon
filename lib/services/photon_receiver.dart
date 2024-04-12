@@ -8,14 +8,14 @@ import 'package:hive/hive.dart';
 import 'package:photon/methods/methods.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/services/file_services.dart';
+import 'package:refreshed/instance_manager.dart';
 import '../controllers/controllers.dart';
-import 'package:get_it/get_it.dart';
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 
 class PhotonReceiver {
   static late int _secretCode;
   static late Map<String, dynamic> filePathMap;
-  static final Box _box = Hive.box('appData');
+  static final Box _box = Hive.box(name: 'appData');
   static late int id;
   static int totalTime = 0;
 
@@ -85,46 +85,43 @@ class PhotonReceiver {
   static isRequestAccepted(SenderModel senderModel) async {
     String username = _box.get('username');
     var avatar = await rootBundle.load(_box.get('avatarPath'));
-    var resp = await http.get(
+    var resp = await Dio().getUri(
         Uri.parse('http://${senderModel.ip}:${senderModel.port}/get-code'),
-        headers: {
+        options: Options(headers: {
           'receiver-name': username,
           'os': Platform.operatingSystem,
           'avatar': avatar.buffer.asUint8List().toString()
           // 'avatar': avatar.buffer.asUint8List().toString()s
-        });
+        }));
     id = Random().nextInt(10000);
-    var senderRespData = jsonDecode(resp.body);
+    var senderRespData = jsonDecode(resp.data);
     return senderRespData;
   }
 
   static sendBackReceiverRealtimeData(SenderModel senderModel,
       {fileIndex = -1, isCompleted = true}) {
-    http.post(
-      Uri.parse('http://${senderModel.ip}:4040/receiver-data'),
-      headers: {
-        "receiverID": id.toString(),
-        "os": Platform.operatingSystem,
-        "hostName": _box.get('username'),
-        "currentFile": '${fileIndex + 1}',
-        "isCompleted": '$isCompleted',
-      },
-    );
+    Dio().postUri(Uri.parse('http://${senderModel.ip}:4040/receiver-data'),
+        options: Options(
+          headers: {
+            "receiverID": id.toString(),
+            "os": Platform.operatingSystem,
+            "hostName": _box.get('username'),
+            "currentFile": '${fileIndex + 1}',
+            "isCompleted": '$isCompleted',
+          },
+        ));
   }
 
   static receiveText(SenderModel senderModel, int secretCode) async {
-    RawTextController getInstance = GetIt.instance.get<RawTextController>();
+    final photonController = Get.putOrFind(() => PhotonController());
     var resp =
         await Dio().get("http://${senderModel.ip}:4040/$secretCode/text");
     String text = jsonDecode(resp.data)['raw_text'];
-    getInstance.rawText.value = text;
+    photonController.rawText.value = text;
   }
 
   static receiveFiles(SenderModel senderModel, int secretCode) async {
-    PercentageController getInstance =
-        GetIt.instance.get<PercentageController>();
-    //getting hiveObj
-
+    final photonController = Get.putOrFind(() => PhotonController());
     String filePath = '';
     totalTime = 0;
     try {
@@ -137,9 +134,9 @@ class PhotonReceiver {
           fileIndex < filePathMap['paths']!.length;
           fileIndex++) {
         //if a file is cancelled once ,it should not be automatically fetched without user action
-        if (getInstance.isCancelled[fileIndex].value == false) {
-          getInstance.fileStatus[fileIndex].value = Status.downloading.name;
-
+        if (photonController.isCancelled[fileIndex].value == false) {
+          photonController.fileStatus[fileIndex].value =
+              Status.downloading.name;
           if (filePathMap.containsKey('isApk')) {
             if (filePathMap['isApk']) {
               // when sender sends apk files
@@ -159,8 +156,8 @@ class PhotonReceiver {
       // sends after last file is sent
 
       sendBackReceiverRealtimeData(senderModel);
-      getInstance.isFinished.value = true;
-      getInstance.totalTimeElapsed.value = totalTime;
+      photonController.isFinished.value = true;
+      photonController.totalTimeElapsed.value = totalTime;
     } catch (e) {
       debugPrint('$e');
     }
@@ -179,10 +176,10 @@ class PhotonReceiver {
     int fileIndex,
     SenderModel senderModel,
   ) async {
-    Dio dio = Dio();
-    PercentageController getInstance = GetIt.I<PercentageController>();
+    final dio = Dio();
+    final percentageController = Get.putOrFind(() => PhotonController());
     //creates instance of cancelToken and inserts it to list
-    getInstance.cancelTokenList.insert(fileIndex, CancelToken());
+    percentageController.cancelTokenList.insert(fileIndex, CancelToken());
     String savePath = await FileMethods.getSavePath(filePath, senderModel);
     Stopwatch stopwatch = Stopwatch();
     int? prevBits;
@@ -195,23 +192,22 @@ class PhotonReceiver {
       sendBackReceiverRealtimeData(senderModel,
           fileIndex: fileIndex, isCompleted: false);
       stopwatch.start();
-
-      getInstance.fileStatus[fileIndex].value = "downloading";
+      percentageController.fileStatus[fileIndex].value = "downloading";
       await dio.download(
         'http://${senderModel.ip}:4040/$_secretCode/$fileIndex',
         savePath,
         deleteOnError: true,
-        cancelToken: getInstance.cancelTokenList[fileIndex],
+        cancelToken: percentageController.cancelTokenList[fileIndex],
         onReceiveProgress: (received, total) {
           if (total != -1) {
             count++;
-            getInstance.percentage[fileIndex].value =
+            percentageController.percentage[fileIndex].value =
                 (double.parse((received / total * 100).toStringAsFixed(0)));
             if (prevBits == null) {
               prevBits = received;
               prevDuration = stopwatch.elapsedMicroseconds;
-              getInstance.minSpeed.value = getInstance.maxSpeed.value =
-                  ((prevBits! * 8) / prevDuration!);
+              percentageController.minSpeed.value = percentageController
+                  .maxSpeed.value = ((prevBits! * 8) / prevDuration!);
             } else {
               prevBits = received - prevBits!;
               prevDuration = stopwatch.elapsedMicroseconds - prevDuration!;
@@ -219,34 +215,38 @@ class PhotonReceiver {
           }
           //used for reducing speed update frequency
           if (count % 10 == 0) {
-            getInstance.speed.value = (prevBits! * 8) / prevDuration!;
+            percentageController.speed.value = (prevBits! * 8) / prevDuration!;
             //calculate min and max speeds
-            if (getInstance.speed.value > getInstance.maxSpeed.value) {
-              getInstance.maxSpeed.value = getInstance.speed.value;
-            } else if (getInstance.speed.value < getInstance.minSpeed.value) {
-              getInstance.minSpeed.value = getInstance.speed.value;
+            if (percentageController.speed.value >
+                percentageController.maxSpeed.value) {
+              percentageController.maxSpeed.value =
+                  percentageController.speed.value;
+            } else if (percentageController.speed.value <
+                percentageController.minSpeed.value) {
+              percentageController.minSpeed.value =
+                  percentageController.speed.value;
             }
 
             // update estimated time
-            getInstance.estimatedTime.value = getEstimatedTime(
-                received * 8, total * 8, getInstance.speed.value);
+            percentageController.estimatedTime.value = getEstimatedTime(
+                received * 8, total * 8, percentageController.speed.value);
             //update time elapsed
           }
         },
       );
       totalTime = totalTime + stopwatch.elapsed.inSeconds;
       stopwatch.reset();
-      getInstance.speed.value = 0.0;
+      percentageController.speed.value = 0.0;
       //after completion of download mark it as true
-      getInstance.isReceived[fileIndex].value = true;
+      percentageController.isReceived[fileIndex].value = true;
       storeHistory(_box, savePath);
-      getInstance.fileStatus[fileIndex].value = "downloaded";
+      percentageController.fileStatus[fileIndex].value = "downloaded";
     } catch (e) {
-      getInstance.speed.value = 0;
-      getInstance.fileStatus[fileIndex].value = "cancelled";
-      getInstance.isCancelled[fileIndex].value = true;
+      percentageController.speed.value = 0;
+      percentageController.fileStatus[fileIndex].value = "cancelled";
+      percentageController.isCancelled[fileIndex].value = true;
 
-      if (!CancelToken.isCancel(e as DioError)) {
+      if (!CancelToken.isCancel(e as DioException)) {
         debugPrint("Dio error");
       } else {
         debugPrint(e.toString());

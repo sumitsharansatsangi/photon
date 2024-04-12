@@ -107,13 +107,13 @@ class FileMethods {
   }
 
   static editDirectoryPath(String path) {
-    var box = Hive.box('appData');
+    var box = Hive.box(name: 'appData');
     box.put('directoryPath', path);
   }
 
   static Future<Directory> getSaveDirectory() async {
     late Directory directory;
-    var box = Hive.box('appData');
+    var box = Hive.box(name: 'appData');
     if (box.get('directoryPath') == null) {
       switch (Platform.operatingSystem) {
         case "android":

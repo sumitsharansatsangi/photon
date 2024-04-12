@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:photon/controllers/controllers.dart';
 import 'package:photon/methods/methods.dart';
 import 'package:photon/models/file_model.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/models/share_error_model.dart';
 import 'package:photon/views/share_ui/share_page.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:hive/hive.dart';
+import 'package:refreshed/refreshed.dart';
 import '../components/dialogs.dart';
 import '../components/snackbar.dart';
 import '../main.dart';
@@ -45,7 +46,7 @@ class PhotonSender {
     }
   }
 
-  static assignIP() async {
+  static void assignIP() async {
     //todo handle exception when no ip available
     //todo add option to choose ip from list
     List<String> ip = await getIP();
@@ -99,10 +100,11 @@ class PhotonSender {
     try {
       _server = await HttpServer.bind(_address, 4040);
       _randomSecretCode = getRandomNumber();
-      Box box = Hive.box('appData');
-      String username = box.get('username');
-      avatar =
-          (await rootBundle.load(box.get('avatarPath'))).buffer.asUint8List();
+      final photonController = Get.putOrFind(() => PhotonController());
+      String username = photonController.box.get('username');
+      avatar = (await rootBundle.load(photonController.box.get('avatarPath')))
+          .buffer
+          .asUint8List();
 
       serverInf = {
         'ip': _server.address.address,
@@ -245,18 +247,15 @@ class PhotonSender {
       // Photon will be opened along with intended files' paths
       if (extIntentType == "file") {
         List<SharedMediaFile> sharedMediaFiles =
-            await ReceiveSharingIntent.getInitialMedia();
+            await ReceiveSharingIntent.instance.getInitialMedia();
         _fileList = sharedMediaFiles.map((e) => e.path).toList();
-      } else {
-        _fileList = [];
-        _rawText = (await ReceiveSharingIntent.getInitialText())!;
       }
-      await assignIP();
+      assignIP();
       Future<Map<String, dynamic>> res = _startServer(_fileList, context,
           isRawText: extIntentType == "raw_text");
       return await res;
     } else if (isRawText) {
-      await assignIP();
+      assignIP();
       // assign empty list to late init var _fileList
       _fileList = [];
       Future<Map<String, dynamic>> res =
@@ -266,8 +265,8 @@ class PhotonSender {
       // User manually opens photon
       // Selects files
       if (await getFilesPath(appList: appList)) {
-        await assignIP();
-        await storeSentFileHistory(_fileList);
+        assignIP();
+        storeSentFileHistory(_fileList);
         Map<String, dynamic> res =
             await _startServer(_fileList, context, isApk: appList.isNotEmpty);
         return res;

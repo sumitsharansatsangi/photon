@@ -1,4 +1,4 @@
-package dev.abhi.photon
+package com.kumpali.photon
 
 import android.content.Intent
 import androidx.annotation.NonNull;

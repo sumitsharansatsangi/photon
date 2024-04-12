@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive/hive.dart';
+import 'package:photon/controllers/controllers.dart';
+import 'package:refreshed/refreshed.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -11,11 +12,12 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   List selected = List.generate(4, (index) => false);
-  Box box = Hive.box('appData');
+
   TextEditingController usernameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final photonController = Get.putOrFind(() => PhotonController());
     double w = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
@@ -52,7 +54,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             setState(() {
                               selected.fillRange(0, 4, false);
                               selected[index] = true;
-                              box.put('avatarPath',
+                              photonController.box.put('avatarPath',
                                   'assets/avatars/${index + 1}.png');
                             });
                           },
@@ -67,8 +69,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                     right: 5,
                                     child: SvgPicture.asset(
                                       'assets/icons/right_mark.svg',
-                                      color: const Color.fromARGB(
-                                          255, 128, 242, 132),
+                                      colorFilter: const ColorFilter.mode(
+                                          Color.fromARGB(255, 128, 242, 132),
+                                          BlendMode.srcIn),
                                       width: 40,
                                     ),
                                   )
@@ -101,7 +104,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           if (usernameController.text.trim() != '') {
-            box.put('username', usernameController.text.trim());
+            photonController.box
+                .put('username', usernameController.text.trim());
           }
           Navigator.of(context)
               .pushNamedAndRemoveUntil('/home', (route) => false);

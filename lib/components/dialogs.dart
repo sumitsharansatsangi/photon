@@ -1,27 +1,21 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
-import 'package:path/path.dart';
 import 'package:photon/main.dart';
-
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:refreshed/instance_manager.dart';
 import 'package:url_launcher/url_launcher.dart' as ulaunch;
 
 import '../app.dart';
 import '../controllers/controllers.dart';
 import '../services/photon_sender.dart';
 
-void privacyPolicyDialog(BuildContext context, String data) async {
-  SharedPreferences prefInst = await SharedPreferences.getInstance();
+void privacyPolicyDialog(BuildContext context, String data) {
+  final PhotonController photonController =
+      Get.putOrFind(() => PhotonController());
   showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: prefInst.getBool('isDarkTheme') == true
+          backgroundColor: photonController.isDarkTheme.value
               ? const Color.fromARGB(255, 27, 32, 35)
               : Colors.white,
           title: const Text('Privacy policy'),
@@ -36,7 +30,7 @@ void privacyPolicyDialog(BuildContext context, String data) async {
             ElevatedButton(
                 onPressed: () async {
                   await ulaunch.launchUrl(Uri.parse(
-                      'https://github.com/abhi16180/photon-file-transfer'));
+                      'https://github.com/sumitsharansatsangi/photon'));
                 },
                 child: const Text('Source-code')),
             ElevatedButton(
@@ -49,13 +43,14 @@ void privacyPolicyDialog(BuildContext context, String data) async {
       });
 }
 
-progressPageAlertDialog(BuildContext context) async {
-  SharedPreferences prefInst = await SharedPreferences.getInstance();
+void progressPageAlertDialog(BuildContext context) {
+  final PhotonController photonController =
+      Get.putOrFind(() => PhotonController());
   showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        backgroundColor: prefInst.getBool('isDarkTheme') == true
+        backgroundColor: photonController.isDarkTheme.value
             ? const Color.fromARGB(255, 27, 32, 35)
             : Colors.white,
         title: const Text('Alert'),
@@ -68,9 +63,8 @@ progressPageAlertDialog(BuildContext context) async {
               child: const Text('Stay')),
           ElevatedButton(
             onPressed: () async {
-              // ignore: use_build_context_synchronously
-              GetIt.I.get<PercentageController>().totalTimeElapsed.value = 0;
-              GetIt.I.get<PercentageController>().isFinished.value = false;
+              photonController.totalTimeElapsed.value = 0;
+              photonController.isFinished.value = false;
               Navigator.of(context).pushNamedAndRemoveUntil(
                   '/home', (Route<dynamic> route) => false);
             },
@@ -82,14 +76,15 @@ progressPageAlertDialog(BuildContext context) async {
   );
 }
 
-progressPageWillPopDialog(context) async {
-  SharedPreferences prefInst = await SharedPreferences.getInstance();
+Future<bool> progressPageWillPopDialog(context) async {
+  final PhotonController photonController =
+      Get.putOrFind(() => PhotonController());
   bool willPop = false;
   await showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        backgroundColor: prefInst.getBool('isDarkTheme') == true
+        backgroundColor: photonController.isDarkTheme.value
             ? const Color.fromARGB(255, 27, 32, 35)
             : Colors.white,
         title: const Text('Alert'),
@@ -104,11 +99,8 @@ progressPageWillPopDialog(context) async {
           ElevatedButton(
             onPressed: () async {
               willPop = true;
-
-              // ignore: use_build_context_synchronously
-              GetIt.I.get<PercentageController>().totalTimeElapsed.value = 0;
-              GetIt.I.get<PercentageController>().isFinished.value = false;
-
+              photonController.totalTimeElapsed.value = 0;
+              photonController.isFinished.value = false;
               Navigator.of(context).pushNamedAndRemoveUntil(
                   '/home', (Route<dynamic> route) => false);
             },
@@ -121,13 +113,14 @@ progressPageWillPopDialog(context) async {
   return willPop;
 }
 
-sharePageAlertDialog(BuildContext context) async {
-  SharedPreferences prefInst = await SharedPreferences.getInstance();
+void sharePageAlertDialog(BuildContext context) {
+  final PhotonController photonController =
+      Get.putOrFind(() => PhotonController());
   showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        backgroundColor: prefInst.getBool('isDarkTheme') == true
+        backgroundColor: photonController.isDarkTheme.value
             ? const Color.fromARGB(255, 27, 32, 35)
             : Colors.white,
         title: const Text('Server alert'),
@@ -139,11 +132,12 @@ sharePageAlertDialog(BuildContext context) async {
           ElevatedButton(
             onPressed: () async {
               await PhotonSender.closeServer(context);
-              // ignore: use_build_context_synchronously
-              GetIt.I.get<ReceiverDataController>().receiverMap.clear();
-              Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const App()),
-                  (route) => false);
+              photonController.receiverMap.clear();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const App()),
+                    (route) => false);
+              }
             },
             child: const Text('Terminate'),
           )
@@ -155,12 +149,13 @@ sharePageAlertDialog(BuildContext context) async {
 
 sharePageWillPopDialog(context) async {
   bool willPop = false;
-  SharedPreferences prefInst = await SharedPreferences.getInstance();
+  final PhotonController photonController =
+      Get.putOrFind(() => PhotonController());
   await showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        backgroundColor: prefInst.getBool('isDarkTheme') == true
+        backgroundColor: photonController.isDarkTheme.value
             ? const Color.fromARGB(255, 27, 32, 35)
             : Colors.white,
         title: const Text('Server alert'),
@@ -177,8 +172,9 @@ sharePageWillPopDialog(context) async {
             onPressed: () async {
               await PhotonSender.closeServer(context);
               willPop = true;
-              // ignore: use_build_context_synchronously
-              Navigator.of(context).pop();
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
               // Navigator.of(context).pushAndRemoveUntil(
               //     MaterialPageRoute(builder: (context) => const App()),
               //     (route) => false);
@@ -197,13 +193,14 @@ senderRequestDialog(
   String os,
 ) async {
   bool allowRequest = false;
-  SharedPreferences prefInst = await SharedPreferences.getInstance();
+  final PhotonController photonController =
+      Get.putOrFind(() => PhotonController());
 
   await showDialog(
       context: nav.currentContext!,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: prefInst.getBool('isDarkTheme') == true
+          backgroundColor: photonController.isDarkTheme.value
               ? const Color.fromARGB(255, 27, 32, 35)
               : Colors.white,
           title: const Text('Request from receiver'),
@@ -232,12 +229,13 @@ senderRequestDialog(
 }
 
 credits(context) async {
-  SharedPreferences prefInst = await SharedPreferences.getInstance();
+  final PhotonController photonController =
+      Get.putOrFind(() => PhotonController());
   showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: prefInst.getBool('isDarkTheme') == true
+          backgroundColor: photonController.isDarkTheme.value
               ? const Color.fromARGB(255, 27, 32, 35)
               : Colors.white,
           title: const Text('Credits'),

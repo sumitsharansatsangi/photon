@@ -1,6 +1,5 @@
-import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:refreshed/refreshed.dart';
 import 'package:lottie/lottie.dart';
 
 import 'package:photon/controllers/controllers.dart';
@@ -8,23 +7,22 @@ import 'package:photon/controllers/controllers.dart';
 import '../methods/methods.dart';
 
 class Dashboard extends StatelessWidget {
-  final AdaptiveThemeMode mode;
   final double width;
-  final PercentageController getInstance;
-  const Dashboard(
-      {super.key,
-      required this.mode,
-      required this.width,
-      required this.getInstance});
+  const Dashboard({
+    super.key,
+    required this.width,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final PhotonController photonController =
+        Get.putOrFind(() => PhotonController());
     return Focus(
       child: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),
         child: Card(
-          elevation: mode.isDark ? 5 : 10,
-          color: mode.isDark
+          elevation: photonController.isDarkTheme.value ? 5 : 10,
+          color: photonController.isDarkTheme.value
               ? const Color.fromARGB(255, 25, 24, 24)
               : const Color.fromARGB(255, 255, 255, 255),
           child: SizedBox(
@@ -35,7 +33,7 @@ class Dashboard extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (getInstance.isFinished.isFalse) ...{
+                    if (photonController.isFinished.isFalse) ...{
                       const Text(
                         "Current speed",
                         style: TextStyle(
@@ -51,7 +49,8 @@ class Dashboard extends StatelessWidget {
                           ),
                           children: [
                             TextSpan(
-                              text: getInstance.speed.value.toStringAsFixed(2),
+                              text: photonController.speed.value
+                                  .toStringAsFixed(2),
                             ),
                             const TextSpan(
                               text: ' mbps',
@@ -67,11 +66,11 @@ class Dashboard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Text(
-                            "Min ${(getInstance.minSpeed.value).toStringAsFixed(2)} mbps",
+                            "Min ${(photonController.minSpeed.value).toStringAsFixed(2)} mbps",
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            "Max ${(getInstance.maxSpeed.value).toStringAsFixed(2)}  mbps",
+                            "Max ${(photonController.maxSpeed.value).toStringAsFixed(2)}  mbps",
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           )
                         ],
@@ -84,7 +83,7 @@ class Dashboard extends StatelessWidget {
                       Expanded(
                           flex: 1,
                           child: Text(
-                            'Time taken, ${formatTime(getInstance.totalTimeElapsed.value)}',
+                            'Time taken, ${formatTime(photonController.totalTimeElapsed.value)}',
                           ))
                     }
                   ],

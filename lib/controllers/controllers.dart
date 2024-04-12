@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+import 'package:refreshed/refreshed.dart';
 
 enum Status { waiting, downloaded, cancelled, downloading, error }
 
-class PercentageController extends GetxController {
+class PhotonController extends GetxController {
   var percentage = [].obs;
   var isCancelled = [].obs;
   var isReceived = [].obs;
@@ -16,16 +16,14 @@ class PercentageController extends GetxController {
   var fileStatus = [].obs;
   var isFinished = false.obs;
   List<CancelToken> cancelTokenList = [];
-}
-
-class ReceiverDataController extends GetxController {
   var receiverMap = {}.obs;
-}
-
-class St {
-  BuildContext? cxt;
-}
-
-class RawTextController extends GetxController {
   var rawText = "".obs;
+  Box box = Hive.box(name: 'appData');
+  var isDarkTheme = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    isDarkTheme.value = box.get("isDarkTheme");
+  }
 }

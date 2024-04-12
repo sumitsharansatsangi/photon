@@ -18,7 +18,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 2.0.0+8
 
 environment:
-  sdk: ">=3.0.0 <=3.18.0-0.2.pre"
+  sdk: ">=3.3.3 <=4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -26,6 +26,8 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+
+
 dependencies:
   flutter:
     sdk: flutter
@@ -33,34 +35,32 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
-  flutter_svg: ^2.0.9
-  lottie:
+  cupertino_icons: ^1.0.6
+  flutter_svg: ^2.0.10+1
+  lottie: 
   unicons:
-  dio: ^5.1.1
-  path_provider: ^2.0.11
-  get_it: ^7.2.0
-  get:
-  path: ^1.8.1
+  dio: ^5.4.2+1
+  path_provider: ^2.1.2
+  refreshed: ^2.5.6
+  path: ^1.9.0
   animated_splash_screen:
   flex_color_scheme:
-  url_launcher: ^6.1.5
+  url_launcher: ^6.2.5
   page_transition:
-  shared_preferences: ^2.0.15
-  introduction_screen: ^3.0.2
+  introduction_screen: ^3.1.14
   mailto: ^2.0.0 
-  receive_sharing_intent: ^1.4.5
-  modal_bottom_sheet: 
-  flutter_displaymode: ^0.6.0
-  adaptive_theme: 
+  receive_sharing_intent: ^1.7.0
+  modal_bottom_sheet: ^3.0.0
+  flutter_displaymode: ^0.6.0 
   system_settings:
+    git: https://github.com/sumitsharansatsangi/system_settings.git
   stop_watch_timer:
   flutter_markdown:
-  device_apps: 
-  http:
+  device_apps:
+    git: https://github.com/sumitsharansatsangi/flutter_plugin_device_apps.git
   provider:
   file_picker:
-  open_filex:  
+  open_filex:  ^4.4.0
   # This is modified version of file_picker it is faster and doesn't cache files unnecessarily
   # file_picker:
   #   git:
@@ -73,11 +73,16 @@ dependencies:
   # open_file:
   #   git:
   #     url: https://github.com/abhi16180/open_file.git
-  hive: ^2.2.3
-  permission_handler: ^11.1.0
-  
-  qr_flutter: ^4.0.0
+  permission_handler: ^11.3.1
+  # isar: *isar_version
+  hive: ^4.0.0-dev.2
+  isar_flutter_libs: ^4.0.0-dev.14
+  # isar_flutter_libs: 
+    # git: https://github.com/kumsumit/isar_flutter_libs.git
+  qr_flutter: ^4.1.0
   qrscan:
+    git: https://github.com/sumitsharansatsangi/qrcode_scanner.git
+  # qr_code_dart_scan: ^0.7.6
   graphic: ^2.2.1
  
 
@@ -93,11 +98,11 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
-  flutter_distributor: 
+  flutter_lints: ^3.0.0
+  flutter_distributor: ^0.4.0
   build_runner:
   change_app_package_name: 
-  msix: ^2.8.18
+  msix: ^3.16.7
 
 
 # For information on the generic Dart part of this file, see the
@@ -105,7 +110,7 @@ dev_dependencies:
 msix_config:
   display_name: Photon
   publisher_display_name: N/A
-  identity_name: dev.abhi.photon
+  identity_name: com.kumpali.photon
   msix_version: 1.1.1.0
   logo_path: assets\images\icon.png
   capabilities: internetClient, internetServer
