@@ -10,11 +10,15 @@ class HandleShare {
   onNormalScanTap() async {
     getIP().then((value) async {
       if (value.isNotEmpty) {
-        Navigator.of(context).pushNamed('/receivepage');
+        if (context.mounted) {
+          Navigator.of(context).pushNamed('/receivepage');
+        }
       } else {
-        Navigator.of(context).pop();
-        showSnackBar(
-            context, 'Please connect to wifi / hotspot same as that of sender');
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          showSnackBar(context,
+              'Please connect to wifi / hotspot same as that of sender');
+        }
         await Future.delayed(
           const Duration(seconds: 2),
         );
@@ -26,15 +30,19 @@ class HandleShare {
   onQrScanTap() {
     getIP().then((value) async {
       if (value.isNotEmpty) {
-        Navigator.of(context).push(
+        if(context.mounted) {
+          Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => const QrReceivePage(),
           ),
         );
+        }
       } else {
+        if(context. mounted ){
         Navigator.of(context).pop();
         showSnackBar(
             context, 'Please connect to wifi / hotspot same as that of sender');
+      }
         await Future.delayed(
           const Duration(seconds: 2),
         );

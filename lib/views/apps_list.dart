@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:photon/components/constants.dart';
 import 'package:photon/components/snackbar.dart';
 import 'package:photon/services/photon_sender.dart';
-import 'package:provider/provider.dart';
+import 'package:photon/views/app.dart';
 import 'package:unicons/unicons.dart';
 
 class AppsList extends StatefulWidget {
@@ -78,36 +78,8 @@ class _AppsListState extends State<AppsList> {
                       )),
                   itemCount: apps.length,
                   itemBuilder: (context, item) {
-                    return ChangeNotifierProvider(
-                        create: (context) =>
-                            ListTileState(isSelected: boolList),
-                        builder: ((context, child) {
-                          return Consumer(
-                            builder: ((context, ListTileState value, child) =>
-                                ListTile(
-                                  selected: value.isSelected[item],
-                                  onTap: () {
-                                    value.isSelect(item);
-                                    if (value.isSelected[item]) {
-                                      paths.add(apps[item].apkFilePath);
-                                    } else {
-                                      paths.remove(apps[item].apkFilePath);
-                                    }
-                                  },
-                                  leading: Image.memory(
-                                    apps[item].icon,
-                                    width: 36,
-                                  ),
-                                  title: Text(
-                                    apps[item].appName,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  trailing: value.isSelected[item]
-                                      ? const Icon(UniconsLine.check_circle)
-                                      : null,
-                                )),
-                          );
-                        }));
+                    return AppTile(listTileState: ListTileState(isSelected: boolList), apps: apps,
+                     item: item, paths: paths);
                   });
             } else {
               return const Center(
@@ -129,15 +101,4 @@ class _AppsListState extends State<AppsList> {
       ),
     );
   }
-}
-
-class ListTileState extends ChangeNotifier {
-  List<bool> isSelected;
-  ListTileState({required this.isSelected});
-  isSelect(i) {
-    isSelected[i] = !isSelected[i];
-    notifyListeners();
-  }
-
-  search() {}
 }

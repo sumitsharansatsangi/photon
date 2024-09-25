@@ -245,11 +245,10 @@ class PhotonSender {
     if (externalIntent) {
       // When user tries to share files opened / listed on external app
       // Photon will be opened along with intended files' paths
-      if (extIntentType == "file") {
+      
         List<SharedMediaFile> sharedMediaFiles =
             await ReceiveSharingIntent.instance.getInitialMedia();
         _fileList = sharedMediaFiles.map((e) => e.path).toList();
-      }
       assignIP();
       Future<Map<String, dynamic>> res = _startServer(_fileList, context,
           isRawText: extIntentType == "raw_text");

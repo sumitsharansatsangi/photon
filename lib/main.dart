@@ -38,7 +38,6 @@ void main() async {
       await FlutterDisplayMode.setHighRefreshRate();
     } catch (_) {}
   }
-  // await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(MaterialApp(
     navigatorKey: nav,
     debugShowCheckedModeBanner: false,

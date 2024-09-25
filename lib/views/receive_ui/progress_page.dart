@@ -61,7 +61,7 @@ class _ProgressPageState extends State<ProgressPage> {
         ? MediaQuery.of(context).size.width / 1.8
         : MediaQuery.of(context).size.width / 1.4;
 
-    return WillPopScope(
+    return PopScope(
       child: Scaffold(
         appBar: AppBar(
           title: Obx(
@@ -487,9 +487,8 @@ class _ProgressPageState extends State<ProgressPage> {
               )
             : null,
       ),
-      onWillPop: () async {
-        willPop = await progressPageWillPopDialog(context);
-        return willPop;
+      onPopInvokedWithResult: (b, val) async {
+        await progressPageWillPopDialog(context);
       },
     );
   }

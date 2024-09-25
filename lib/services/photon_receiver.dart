@@ -241,12 +241,14 @@ class PhotonReceiver {
       percentageController.isReceived[fileIndex].value = true;
       storeHistory(_box, savePath);
       percentageController.fileStatus[fileIndex].value = "downloaded";
-    } catch (e) {
+    } on PathNotFoundException catch (e) {
+      debugPrint(e.toString());
+    } on DioException catch (e) {
       percentageController.speed.value = 0;
       percentageController.fileStatus[fileIndex].value = "cancelled";
       percentageController.isCancelled[fileIndex].value = true;
-
-      if (!CancelToken.isCancel(e as DioException)) {
+      debugPrint(e.toString());
+      if (!CancelToken.isCancel(e)) {
         debugPrint("Dio error");
       } else {
         debugPrint(e.toString());

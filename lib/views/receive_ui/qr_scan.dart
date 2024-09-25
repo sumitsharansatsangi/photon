@@ -1,13 +1,12 @@
+import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photon/controllers/controllers.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/views/receive_ui/progress_page.dart';
 import 'package:refreshed/refreshed.dart';
-// import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../components/constants.dart';
 import '../../services/photon_receiver.dart';
-import 'package:qrscan/qrscan.dart' as scan;
 
 class QrReceivePage extends StatefulWidget {
   const QrReceivePage({
@@ -19,9 +18,33 @@ class QrReceivePage extends StatefulWidget {
 }
 
 class _QrReceivePageState extends State<QrReceivePage> {
-  _scan() async {
+  final scannerController = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+  );
+
+  Future<String?> _scan() async {
     await Permission.camera.request();
-    var resp = await scan.scan();
+    String? resp;
+    if ( mounted && context.mounted) {
+      await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AiBarcodeScanner(
+          onDispose: () {
+            debugPrint("Barcode scanner disposed!");
+          },
+          hideGalleryButton: false,
+          controller: MobileScannerController(
+            detectionSpeed: DetectionSpeed.noDuplicates,
+          ),
+          onDetect: (BarcodeCapture capture) {
+            resp = capture.barcodes.first.rawValue;
+            debugPrint("Barcode scanned: $resp");
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
+    }
     return resp;
   }
 
@@ -125,9 +148,7 @@ class _QrReceivePageState extends State<QrReceivePage> {
         });
       }
     } catch (_) {
-      innerState(() {
-        hasErr = true;
-      });
+      hasErr = true;
     }
   }
 }
