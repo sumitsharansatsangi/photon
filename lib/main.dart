@@ -71,7 +71,7 @@ void main() async {
         visualDensity: FlexColorScheme.comfortablePlatformDensity,
         useMaterial3: true,
         fontFamily: 'questrial'),
-    initialRoute: '/',    
+    initialRoute: '/',
     routes: {
       '/': (context) => AnimatedSplashScreen(
             splash: 'assets/images/splash.png',

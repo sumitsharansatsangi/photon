@@ -63,9 +63,11 @@ class _MobileHomeState extends State<MobileHome> {
                               isLoading = true;
                             });
                             await PhotonSender.handleSharing();
-                            setState(() {
-                              isLoading = false;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                isLoading = false;
+                              });
+                            }
                           },
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,

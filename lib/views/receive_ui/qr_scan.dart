@@ -25,25 +25,25 @@ class _QrReceivePageState extends State<QrReceivePage> {
   Future<String?> _scan() async {
     await Permission.camera.request();
     String? resp;
-    if ( mounted && context.mounted) {
+    if (mounted && context.mounted) {
       await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AiBarcodeScanner(
-          onDispose: () {
-            debugPrint("Barcode scanner disposed!");
-          },
-          hideGalleryButton: false,
-          controller: MobileScannerController(
-            detectionSpeed: DetectionSpeed.noDuplicates,
+        MaterialPageRoute(
+          builder: (context) => AiBarcodeScanner(
+            onDispose: () {
+              debugPrint("Barcode scanner disposed!");
+            },
+            hideGalleryButton: false,
+            controller: MobileScannerController(
+              detectionSpeed: DetectionSpeed.noDuplicates,
+            ),
+            onDetect: (BarcodeCapture capture) {
+              resp = capture.barcodes.first.rawValue;
+              debugPrint("Barcode scanned: $resp");
+              Navigator.pop(context);
+            },
           ),
-          onDetect: (BarcodeCapture capture) {
-            resp = capture.barcodes.first.rawValue;
-            debugPrint("Barcode scanned: $resp");
-            Navigator.pop(context);
-          },
         ),
-      ),
-    );
+      );
     }
     return resp;
   }
@@ -142,10 +142,11 @@ class _QrReceivePageState extends State<QrReceivePage> {
           );
         }
       } else {
-        // ignore: use_build_context_synchronously
-        innerState(() {
-          isDenied = true;
-        });
+        if (context.mounted) {
+          innerState(() {
+            isDenied = true;
+          });
+        }
       }
     } catch (_) {
       hasErr = true;

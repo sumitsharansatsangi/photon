@@ -70,8 +70,9 @@ class PhotonSender {
 
     switch (shareErr.hasError) {
       case true:
-        // ignore: use_build_context_synchronously
-        showSnackBar(nav.currentContext, '${shareErr.errorMessage}');
+        if (nav.currentContext != null && nav.currentContext!.mounted) {
+          showSnackBar(nav.currentContext, '${shareErr.errorMessage}');
+        }
         break;
 
       case false:
@@ -98,7 +99,16 @@ class PhotonSender {
       };
     }
     try {
-      _server = await HttpServer.bind(_address, 4040);
+      /* in some devices, especially in windows, the first ip is not valid
+      we need to try to find the correct ip*/
+      List<String> deviceIps = (await getIP()).reversed.toList();
+      for (final deviceIp in deviceIps) {
+        try {
+          _server = await HttpServer.bind(deviceIp, 4040);
+          _address = deviceIp;
+          break;
+        } catch (_) {}
+      }
       _randomSecretCode = getRandomNumber();
       final photonController = Get.putOrFind(() => PhotonController());
       String username = photonController.box.get('username');
@@ -190,8 +200,11 @@ class PhotonSender {
           if (int.parse(requriToList[requriToList.length - 2]) ==
               _randomSecretCode) {
             try {
-              FileModel fileModel = await FileMethods.extractFileData(fileList[
-                  int.parse(request.requestedUri.toString().split('/').last)]!);
+              // store index to use it instead of file name
+              final int index =
+                  int.parse(request.requestedUri.toString().split('/').last);
+              FileModel fileModel =
+                  await FileMethods.extractFileData(fileList[index]!);
 
               request.response.headers.contentType = ContentType(
                 'application',
@@ -202,9 +215,12 @@ class PhotonSender {
                 'Content-Transfer-Encoding',
                 'Binary',
               );
+              /* assign file index instead if name 
+              to prevent recieving canceling when the file name 
+              contains unknown characters */
               request.response.headers.add(
                 'Content-disposition',
-                'attachment; filename=${fileModel.name}',
+                'attachment; filename=$index',
               );
 
               //to send file size
@@ -245,10 +261,10 @@ class PhotonSender {
     if (externalIntent) {
       // When user tries to share files opened / listed on external app
       // Photon will be opened along with intended files' paths
-      
-        List<SharedMediaFile> sharedMediaFiles =
-            await ReceiveSharingIntent.instance.getInitialMedia();
-        _fileList = sharedMediaFiles.map((e) => e.path).toList();
+
+      List<SharedMediaFile> sharedMediaFiles =
+          await ReceiveSharingIntent.instance.getInitialMedia();
+      _fileList = sharedMediaFiles.map((e) => e.path).toList();
       assignIP();
       Future<Map<String, dynamic>> res = _startServer(_fileList, context,
           isRawText: extIntentType == "raw_text");

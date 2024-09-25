@@ -21,23 +21,27 @@ class PhotonReceiver {
 
   ///to get network address [assumes class C address]
   static List<String> getNetAddress(List<String> ipList) {
-    List<String> netAdd = [];
+    Set<String> netAdd = {};
     for (String ip in ipList) {
       var ipToList = ip.split('.');
       ipToList.removeLast();
       netAdd.add(ipToList.join('.'));
     }
-    return netAdd;
+    return netAdd.toList();
   }
 
   ///tries to establish socket connection
   static Future<Map<String, dynamic>> _connect(String host, int port) async {
-    try {
-      var socket = await Socket.connect(host, port)
-          .timeout(const Duration(milliseconds: 2500));
-      socket.destroy();
-      return {"host": host, 'port': port};
-    } catch (_) {
+    if (host != '192.168.1.1') {
+      try {
+        var socket = await Socket.connect(host, port)
+            .timeout(const Duration(milliseconds: 2500));
+        socket.destroy();
+        return {"host": host, 'port': port};
+      } catch (_) {
+        return {};
+      }
+    } else {
       return {};
     }
   }
@@ -59,7 +63,7 @@ class PhotonReceiver {
     List<Future<Map<String, dynamic>>> list = [];
     List<SenderModel> photonServers = [];
     List<String> netAddresses = getNetAddress(await getIP());
-    for (int i = 2; i < 255; i++) {
+    for (int i = 1; i < 255; i++) {
       //scan all of the wireless interfaces available
       for (String netAddress in netAddresses) {
         Future<Map<String, dynamic>> res = _connect('$netAddress.$i', 4040);
@@ -91,7 +95,6 @@ class PhotonReceiver {
           'receiver-name': username,
           'os': Platform.operatingSystem,
           'avatar': avatar.buffer.asUint8List().toString()
-          // 'avatar': avatar.buffer.asUint8List().toString()s
         }));
     id = Random().nextInt(10000);
     var senderRespData = jsonDecode(resp.data);

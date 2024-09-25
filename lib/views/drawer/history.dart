@@ -102,9 +102,10 @@ class _HistoryPageState extends State<HistoryPage>
                                 try {
                                   OpenFilex.open(path);
                                 } catch (_) {
-                                  // ignore: use_build_context_synchronously
-                                  showSnackBar(
-                                      context, 'No corresponding app found');
+                                  if (context.mounted) {
+                                    showSnackBar(
+                                        context, 'No corresponding app found');
+                                  }
                                 }
                               } else {
                                 try {
@@ -115,11 +116,12 @@ class _HistoryPageState extends State<HistoryPage>
                                     ),
                                   );
                                 } catch (e) {
-                                  // ignore: use_build_context_synchronously
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content:
-                                              Text('Unable to open the file')));
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Unable to open the file')));
+                                  }
                                 }
                               }
                             },
@@ -167,9 +169,10 @@ class _HistoryPageState extends State<HistoryPage>
                                 try {
                                   OpenFilex.open(path);
                                 } catch (e) {
-                                  // ignore: use_build_context_synchronously
-                                  showSnackBar(
-                                      context, 'No corresponding app found');
+                                  if (context.mounted) {
+                                    showSnackBar(
+                                        context, 'No corresponding app found');
+                                  }
                                 }
                               } else {
                                 try {
@@ -180,11 +183,12 @@ class _HistoryPageState extends State<HistoryPage>
                                     ),
                                   );
                                 } catch (e) {
-                                  // ignore: use_build_context_synchronously
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content:
-                                              Text('Unable to open the file')));
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Unable to open the file')));
+                                  }
                                 }
                               }
                             },

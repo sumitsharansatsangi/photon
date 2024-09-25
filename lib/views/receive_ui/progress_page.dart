@@ -9,7 +9,6 @@ import 'package:photon/components/snackbar.dart';
 import 'package:photon/controllers/controllers.dart';
 import 'package:photon/services/photon_receiver.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../components/constants.dart';
 import '../../components/dashboard.dart';
 import '../../components/dialogs.dart';
@@ -236,12 +235,10 @@ class _ProgressPageState extends State<ProgressPage> {
                                               widget.senderModel!);
                                         },
                                         child: Card(
-                                          // color: Colors.blue.shade100,
                                           elevation: 2,
                                           clipBehavior: Clip.antiAlias,
                                           child: SizedBox(
                                             width: width + 60,
-                                            height: 100,
                                             child: Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.start,
@@ -500,20 +497,18 @@ class _ProgressPageState extends State<ProgressPage> {
       try {
         OpenFilex.open(path);
       } catch (_) {
-        // ignore: use_build_context_synchronously
-        showSnackBar(context, 'No corresponding app found');
+        if (mounted && context.mounted) {
+          showSnackBar(context, 'No corresponding app found');
+        }
       }
     } else {
       try {
-        launchUrl(
-          Uri.parse(
-            path,
-          ),
-        );
+        OpenFilex.open(path);
       } catch (e) {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unable to open the file')));
+        if (mounted && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Unable to open the file')));
+        }
       }
     }
   }

@@ -53,7 +53,6 @@ class FileMethods {
 
   static Future<String> getSavePath(
       String filePath, SenderModel senderModel) async {
-    // ignore: unused_local_variable
     String? savePath;
     Directory? directory;
     //extract filename from filepath send by the sender
@@ -65,8 +64,7 @@ class FileMethods {
 
     //checking if file can be created at savePath
     try {
-      // ignore: unused_local_variable
-      var file = await File(savePath).create();
+      await File(savePath).create();
     } catch (_) {
       //renaming the path
 

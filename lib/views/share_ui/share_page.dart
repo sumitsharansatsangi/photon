@@ -205,7 +205,7 @@ class _SharePageState extends State<SharePage> {
               ),
             ),
           )),
-      onPopInvokedWithResult : (b,val) async {
+      onPopInvokedWithResult: (b, val) async {
         willPop = await sharePageWillPopDialog(context);
         Get.putOrFind(() => PhotonController()).receiverMap.clear();
       },

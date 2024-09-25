@@ -17,7 +17,8 @@ class AppTile extends StatefulWidget {
   final int item;
   final List<String> paths;
 
-  const AppTile({super.key, 
+  const AppTile({
+    super.key,
     required this.listTileState,
     required this.apps,
     required this.item,

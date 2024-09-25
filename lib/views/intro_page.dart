@@ -5,7 +5,6 @@ import 'package:introduction_screen/introduction_screen.dart';
 import 'package:lottie/lottie.dart';
 import 'package:photon/controllers/controllers.dart';
 import 'package:refreshed/refreshed.dart';
-// import 'package:photon/components/snackbar.dart';
 
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
@@ -71,21 +70,19 @@ class _IntroPageState extends State<IntroPage> {
     List<PageViewModel> pages = [
       PageViewModel(
         titleWidget: Padding(
-          padding: const EdgeInsets.only(top: 18.0),
+          padding: const EdgeInsets.all(32.0),
           child: Image.asset(
             'assets/images/icon.png',
-            width: 128,
-            height: 128,
+            width: 136,
           ),
         ),
         bodyWidget: Center(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 72.0),
-            child: Card(
-              child: Container(
-                height: 200,
-                margin: const EdgeInsets.only(top: 60),
-                width: MediaQuery.of(context).size.width / 1.2,
+          child: Card(
+            child: SizedBox(
+              height: 200,
+              width: MediaQuery.of(context).size.width / 1.2,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -112,33 +109,35 @@ class _IntroPageState extends State<IntroPage> {
         ),
       ),
       PageViewModel(
-        titleWidget: Padding(
-            padding: const EdgeInsets.only(top: 18.0),
-            child: Lottie.asset('assets/lottie/wifi_intro.json',
-                width: 200, height: 200)),
+        titleWidget: Lottie.asset('assets/lottie/wifi_intro.json',
+            width: 200, height: 200),
         bodyWidget: Center(
           child: Card(
-            child: Container(
+            child: SizedBox(
               height: 200,
-              margin: const EdgeInsets.only(top: 60),
               width: MediaQuery.of(context).size.width / 1.2,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Before using make sure that,\nSender and receivers are connected to same wifi router \n OR \n Connected via mobile-hotspot\n',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize:
-                              MediaQuery.of(context).size.width > 720 ? 18 : 16,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            top: 60.0, left: 8.0, right: 8.0),
+                        child: Text(
+                          'Before using make sure that,\nSender and receivers are connected to same wifi router \n OR \n Connected via mobile-hotspot\n',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width > 720
+                                ? 18
+                                : 16,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -146,7 +145,7 @@ class _IntroPageState extends State<IntroPage> {
         ),
       ),
       PageViewModel(
-        title: 'One last step, Select avatar',
+        title: 'One last step, Set Name and Avatar',
         bodyWidget: Center(
           child: SizedBox(
             width: MediaQuery.of(context).size.width / 1.2,
@@ -154,10 +153,22 @@ class _IntroPageState extends State<IntroPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width / 1.4,
+                      child: TextFormField(
+                        controller: usernameController,
+                        decoration: const InputDecoration(
+                            hintText: 'Set your username here'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   SizedBox(
-                    height: MediaQuery.of(context).size.height / 2.2,
                     width: MediaQuery.of(context).size.height / 2.4,
                     child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
                       itemCount: 4,
                       gridDelegate:
@@ -199,17 +210,6 @@ class _IntroPageState extends State<IntroPage> {
                           ))),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width / 1.4,
-                      child: TextFormField(
-                        controller: usernameController,
-                        decoration: const InputDecoration(
-                            hintText: 'Set your username here'),
-                      ),
-                    ),
-                  )
                 ],
               ),
             ),
