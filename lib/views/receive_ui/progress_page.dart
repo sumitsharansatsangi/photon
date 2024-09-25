@@ -56,7 +56,7 @@ class _ProgressPageState extends State<ProgressPage> {
   @override
   Widget build(BuildContext context) {
     final photonController = Get.putOrFind(() => PhotonController());
-    var width = MediaQuery.of(context).size.width > 720
+    final width = MediaQuery.of(context).size.width > 720
         ? MediaQuery.of(context).size.width / 1.8
         : MediaQuery.of(context).size.width / 1.4;
 

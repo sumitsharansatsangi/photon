@@ -196,12 +196,12 @@ getSentFileHistory() {
 }
 
 getHistory() {
-  var box = Hive.box(name: 'appData');
+  final box = Hive.box(name: 'appData');
   return box.get('fileInfo');
 }
 
 clearSentHistory() {
-  var box = Hive.box(name: 'appData');
+  final box = Hive.box(name: 'appData');
   box.delete('sentHistory');
 }
 

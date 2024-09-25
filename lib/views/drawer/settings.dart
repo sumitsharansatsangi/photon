@@ -56,7 +56,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           subtitle: Text(snap.data.toString()),
                           trailing: IconButton(
                             onPressed: () async {
-                              var resp =
+                              final resp =
                                   await FilePicker.platform.getDirectoryPath();
                               if (mounted) {
                                 setState(() {

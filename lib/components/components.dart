@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 infoList(
     SenderModel senderModel, double width, double height, bool sender, theme) {
-  var iconList = [
+  final iconList = [
     Padding(
       padding: const EdgeInsets.only(left: 8.0),
       child: Icon(
@@ -72,7 +72,7 @@ infoList(
       ),
     )
   ];
-  var serverDataList = [
+  final serverDataList = [
     {'type': 'IP'.padRight(12), 'value': senderModel.ip},
     {
       'type': 'User'.padRight(10),

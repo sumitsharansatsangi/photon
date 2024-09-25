@@ -271,7 +271,7 @@ class PhotonSender {
       return await res;
     } else if (isRawText) {
       assignIP();
-      // assign empty list to late init var _fileList
+      // assign empty list to late init final _fileList
       _fileList = [];
       Future<Map<String, dynamic>> res =
           _startServer(_fileList, context, isRawText: isRawText);
@@ -302,7 +302,7 @@ class PhotonSender {
 
   //get details about server
   static getServerInfo() {
-    var info = {
+    final info = {
       'ip': _server.address.address,
       'port': _server.port,
       'host': Platform.localHostname,

@@ -124,7 +124,7 @@ class _QrReceivePageState extends State<QrReceivePage> {
       SenderModel senderModel =
           await PhotonReceiver.isPhotonServer(host, port.toString());
 
-      var resp = await PhotonReceiver.isRequestAccepted(
+      final resp = await PhotonReceiver.isRequestAccepted(
         senderModel,
       );
       if (resp['accepted']) {

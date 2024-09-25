@@ -30,7 +30,7 @@ class FileMethods {
   ///Works only for android and ios
   static clearCache() async {
     if (Platform.isAndroid || Platform.isIOS) {
-      var appDir = (await getTemporaryDirectory()).path;
+      final appDir = (await getTemporaryDirectory()).path;
       Directory(appDir).delete(recursive: true);
     }
   }
@@ -68,7 +68,7 @@ class FileMethods {
     } catch (_) {
       //renaming the path
 
-      var rnd = Random();
+      final rnd = Random();
 
       List newPath = savePath.split('.');
       newPath[0] = newPath[0] + "${rnd.nextInt(1000)}";
@@ -79,7 +79,7 @@ class FileMethods {
 
 //for receiver to display filenames
   static Future<List<String>> getFileNames(SenderModel senderModel) async {
-    var resp = await Dio()
+    final resp = await Dio()
         .get('http://${senderModel.ip}:${senderModel.port}/getpaths');
     Map<String, dynamic> filePathMap = jsonDecode(resp.data);
     List<String> fileNames = [];
@@ -105,17 +105,17 @@ class FileMethods {
   }
 
   static editDirectoryPath(String path) {
-    var box = Hive.box(name: 'appData');
+    final box = Hive.box(name: 'appData');
     box.put('directoryPath', path);
   }
 
   static Future<Directory> getSaveDirectory() async {
     late Directory directory;
-    var box = Hive.box(name: 'appData');
+    final box = Hive.box(name: 'appData');
     if (box.get('directoryPath') == null) {
       switch (Platform.operatingSystem) {
         case "android":
-          var temp = Directory('/storage/emulated/0/Download/');
+          final temp = Directory('/storage/emulated/0/Download/');
           (await temp.exists())
               ? directory = temp
               : directory = await getApplicationDocumentsDirectory();
@@ -138,7 +138,7 @@ class FileMethods {
       directory = Directory(box.get('directoryPath'));
     }
 
-    var tempDir = directory;
+    final tempDir = directory;
     //check if ends with / or \
     if (directory.path.endsWith(Platform.pathSeparator)) {
       directory = Directory("${directory.path}Photon");

@@ -6,8 +6,8 @@ class ProgressLine extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    var rect = Offset.zero & size;
-    var paint = Paint()
+    final rect = Offset.zero & size;
+    final paint = Paint()
       ..color = Colors.green.shade400
       ..strokeWidth = 10
       ..shader = const LinearGradient(

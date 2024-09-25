@@ -5,21 +5,21 @@ import 'package:refreshed/refreshed.dart';
 enum Status { waiting, downloaded, cancelled, downloading, error }
 
 class PhotonController extends GetxController {
-  var percentage = [].obs;
-  var isCancelled = [].obs;
-  var isReceived = [].obs;
-  var speed = 0.0.obs;
-  var minSpeed = 0.0.obs;
-  var maxSpeed = 0.0.obs;
-  var estimatedTime = ''.obs;
-  var totalTimeElapsed = 0.obs;
-  var fileStatus = [].obs;
-  var isFinished = false.obs;
+  RxList percentage = [].obs;
+  RxList isCancelled = [].obs;
+  RxList isReceived = [].obs;
+  final speed = 0.0.obs;
+  final minSpeed = 0.0.obs;
+  final maxSpeed = 0.0.obs;
+  final estimatedTime = ''.obs;
+  final totalTimeElapsed = 0.obs;
+  RxList fileStatus = [].obs;
+  final isFinished = false.obs;
   List<CancelToken> cancelTokenList = [];
-  var receiverMap = {}.obs;
-  var rawText = "".obs;
+  final receiverMap = {}.obs;
+  final rawText = "".obs;
   Box box = Hive.box(name: 'appData');
-  var isDarkTheme = false.obs;
+  final isDarkTheme = false.obs;
 
   @override
   void onInit() {

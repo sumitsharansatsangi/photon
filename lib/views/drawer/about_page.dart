@@ -48,7 +48,7 @@ class AboutPage extends StatelessWidget {
               color: Colors.redAccent,
             ),
             onTap: () {
-              var url = Mailto(
+              final url = Mailto(
                 to: ['photon19dev@gmail.com'],
               ).toString();
               launchUrl(Uri.parse(url));

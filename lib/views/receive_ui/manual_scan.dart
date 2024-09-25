@@ -224,7 +224,7 @@ class _ReceivePageState extends State<ReceivePage> {
                                                 isRequestSent = true;
                                               });
 
-                                              var resp = await PhotonReceiver
+                                              final resp = await PhotonReceiver
                                                   .isRequestAccepted(
                                                 snap.data[index] as SenderModel,
                                               );

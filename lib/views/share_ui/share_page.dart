@@ -148,10 +148,10 @@ class _SharePageState extends State<SharePage> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: photonController.receiverMap.length,
                               itemBuilder: (context, item) {
-                                var keys =
+                                final keys =
                                     photonController.receiverMap.keys.toList();
 
-                                var data = photonController.receiverMap;
+                                final data = photonController.receiverMap;
 
                                 return ListTile(
                                   title: Center(

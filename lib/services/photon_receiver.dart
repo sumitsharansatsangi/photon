@@ -23,7 +23,7 @@ class PhotonReceiver {
   static List<String> getNetAddress(List<String> ipList) {
     Set<String> netAdd = {};
     for (String ip in ipList) {
-      var ipToList = ip.split('.');
+      final ipToList = ip.split('.');
       ipToList.removeLast();
       netAdd.add(ipToList.join('.'));
     }
@@ -34,7 +34,7 @@ class PhotonReceiver {
   static Future<Map<String, dynamic>> _connect(String host, int port) async {
     if (host != '192.168.1.1') {
       try {
-        var socket = await Socket.connect(host, port)
+        final socket = await Socket.connect(host, port)
             .timeout(const Duration(milliseconds: 2500));
         socket.destroy();
         return {"host": host, 'port': port};
@@ -48,9 +48,9 @@ class PhotonReceiver {
 
   ///check if ip & port pair represent photon-server
   static isPhotonServer(String ip, String port) async {
-    var dio = Dio();
+    final dio = Dio();
     try {
-      var resp = await dio.get('http://$ip:$port/photon-server');
+      final resp = await dio.get('http://$ip:$port/photon-server');
       Map<String, dynamic> senderInfo = jsonDecode(resp.data);
       return SenderModel.fromJson(senderInfo);
     } catch (_) {
@@ -71,7 +71,7 @@ class PhotonReceiver {
       }
     }
 
-    for (var ele in list) {
+    for (final ele in list) {
       Map<String, dynamic> item = await ele;
       if (item.containsKey('host')) {
         Future<dynamic> resp;
@@ -88,8 +88,8 @@ class PhotonReceiver {
 
   static isRequestAccepted(SenderModel senderModel) async {
     String username = _box.get('username');
-    var avatar = await rootBundle.load(_box.get('avatarPath'));
-    var resp = await Dio().getUri(
+    final avatar = await rootBundle.load(_box.get('avatarPath'));
+    final resp = await Dio().getUri(
         Uri.parse('http://${senderModel.ip}:${senderModel.port}/get-code'),
         options: Options(headers: {
           'receiver-name': username,
@@ -97,7 +97,7 @@ class PhotonReceiver {
           'avatar': avatar.buffer.asUint8List().toString()
         }));
     id = Random().nextInt(10000);
-    var senderRespData = jsonDecode(resp.data);
+    final senderRespData = jsonDecode(resp.data);
     return senderRespData;
   }
 
@@ -117,7 +117,7 @@ class PhotonReceiver {
 
   static receiveText(SenderModel senderModel, int secretCode) async {
     final photonController = Get.putOrFind(() => PhotonController());
-    var resp =
+    final resp =
         await Dio().get("http://${senderModel.ip}:4040/$secretCode/text");
     String text = jsonDecode(resp.data)['raw_text'];
     photonController.rawText.value = text;
@@ -128,7 +128,7 @@ class PhotonReceiver {
     String filePath = '';
     totalTime = 0;
     try {
-      var resp = await Dio()
+      final resp = await Dio()
           .get('http://${senderModel.ip}:${senderModel.port}/getpaths');
       filePathMap = jsonDecode(resp.data);
       _secretCode = secretCode;

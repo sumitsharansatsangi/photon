@@ -42,7 +42,7 @@ class _AppsListState extends State<AppsList> {
                           ElevatedButton(
                               onPressed: () {
                                 searchData = [];
-                                for (var element in data) {
+                                for (final element in data) {
                                   if (element.appName.toLowerCase().contains(
                                       searchController.text.toLowerCase())) {
                                     searchData.add(element);
