@@ -1,0 +1,2 @@
+/home/sumit/AndroidStudioProjects/photon/android/app/.cxx/Debug/533r3f40/x86/CMakeFiles/edit_cache.dir
+/home/sumit/AndroidStudioProjects/photon/android/app/.cxx/Debug/533r3f40/x86/CMakeFiles/rebuild_cache.dir

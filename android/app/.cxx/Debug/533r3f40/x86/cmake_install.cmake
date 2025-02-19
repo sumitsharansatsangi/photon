@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/sumit/photon/android/app/.cxx/Debug/5q6o6j47/x86/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/sumit/AndroidStudioProjects/photon/android/app/.cxx/Debug/533r3f40/x86/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

@@ -9,10 +9,10 @@
 -DCMAKE_ANDROID_NDK=/home/sumit/Android/Sdk/ndk/28.0.13004108
 -DCMAKE_TOOLCHAIN_FILE=/home/sumit/Android/Sdk/ndk/28.0.13004108/build/cmake/android.toolchain.cmake
 -DCMAKE_MAKE_PROGRAM=/home/sumit/Android/Sdk/cmake/3.22.1/bin/ninja
--DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/home/sumit/photon/build/app/intermediates/cxx/Debug/5q6o6j47/obj/x86
--DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/home/sumit/photon/build/app/intermediates/cxx/Debug/5q6o6j47/obj/x86
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/home/sumit/AndroidStudioProjects/photon/build/app/intermediates/cxx/Debug/533r3f40/obj/x86
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/home/sumit/AndroidStudioProjects/photon/build/app/intermediates/cxx/Debug/533r3f40/obj/x86
 -DCMAKE_BUILD_TYPE=Debug
--B/home/sumit/photon/android/app/.cxx/Debug/5q6o6j47/x86
+-B/home/sumit/AndroidStudioProjects/photon/android/app/.cxx/Debug/533r3f40/x86
 -GNinja
 -Wno-dev
 --no-warn-unused-cli

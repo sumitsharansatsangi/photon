@@ -141,7 +141,7 @@ class _AppState extends State<App> {
                            ListTile(
                           title: const Text('Enable HTTPS'),
                           trailing: Switch(
-                            value: FastDB.getEnableHttps() !,
+                            value: FastDB.getEnableHttps() ?? false,
                             onChanged: (val) async {
                               setState(() {
                                 if (FastDB.getEnableHttps() == false) {

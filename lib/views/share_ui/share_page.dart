@@ -8,8 +8,9 @@ import 'package:photon/components/dialogs.dart';
 import 'package:photon/controllers/controllers.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/services/photon_sender.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+// import 'package:qr_flutter/qr_flutter.dart';
 import 'package:photon/db/fastdb.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../components/components.dart';
 
@@ -63,7 +64,7 @@ class _SharePageState extends State<SharePage> {
                         sharePageAlertDialog(context);
                       }),
                   flexibleSpace: mode.isLight
-                      ? Container(
+                      ? DecoratedBox(
                           decoration: appBarGradient,
                         )
                       : null,
@@ -91,12 +92,24 @@ class _SharePageState extends State<SharePage> {
                                 width: width > 720 ? 200 : 100,
                                 height: width > 720 ? 200 : 100,
                                 child: QrImageView(
-                                  size: 180,
-                                  eyeStyle:
-                                      const QrEyeStyle(color: Colors.black),
-                                  data: PhotonSender.getPhotonLink,
-                                  backgroundColor: Colors.white,
-                                ),
+                            dataModuleStyle: QrDataModuleStyle(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color.fromARGB(255, 214, 255, 248)
+                                    : const Color.fromARGB(255, 1, 29, 17)),
+                            embeddedImage: MemoryImage(senderModel.avatar!),
+                            embeddedImageStyle: const QrEmbeddedImageStyle(
+                                safeArea: true,
+                                embeddedImageShape: EmbeddedImageShape.circle),
+                            size: 180,
+                            eyeStyle: const QrEyeStyle(
+                                color: Color.fromARGB(255, 10, 205, 219)),
+                            data: PhotonSender.getPhotonLink,
+                            backgroundColor:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? const Color.fromARGB(115, 10, 55, 139)
+                                    : const Color.fromARGB(136, 165, 220, 230),
+                          ),
                               )
                             ],
                           )

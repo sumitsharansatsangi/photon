@@ -20,10 +20,12 @@ class Info {
       const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 4);
   String? get date =>
       const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 6);
+      String? get type =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 8);
 
   @override
   String toString() {
-    return 'Info{filePath: $filePath, date: $date}';
+    return 'Info{filePath: $filePath, date: $date, type: $type}';
   }
 }
 
@@ -37,12 +39,15 @@ class _InfoReader extends fb.TableReader<Info> {
 class InfoObjectBuilder extends fb.ObjectBuilder {
   final String? _filePath;
   final String? _date;
+  final String? _type;
 
   InfoObjectBuilder({
     String? filePath,
     String? date,
+    String? type,
   })  : _filePath = filePath,
-        _date = date;
+        _date = date,
+        _type = type;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -50,9 +55,11 @@ class InfoObjectBuilder extends fb.ObjectBuilder {
     final int? filePathOffset =
         _filePath == null ? null : fbBuilder.writeString(_filePath);
     final int? dateOffset = _date == null ? null : fbBuilder.writeString(_date);
-    fbBuilder.startTable(2);
+    final int? typeOffset = _type == null ? null : fbBuilder.writeString(_type);
+    fbBuilder.startTable(3);
     fbBuilder.addOffset(0, filePathOffset);
     fbBuilder.addOffset(1, dateOffset);
+    fbBuilder.addOffset(2, typeOffset);
     return fbBuilder.endTable();
   }
 

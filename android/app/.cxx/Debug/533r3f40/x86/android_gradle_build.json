@@ -6,14 +6,14 @@
     [
       "/home/sumit/Android/Sdk/cmake/3.22.1/bin/ninja",
       "-C",
-      "/home/sumit/photon/android/app/.cxx/Debug/5q6o6j47/x86",
+      "/home/sumit/AndroidStudioProjects/photon/android/app/.cxx/Debug/533r3f40/x86",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
     "/home/sumit/Android/Sdk/cmake/3.22.1/bin/ninja",
     "-C",
-    "/home/sumit/photon/android/app/.cxx/Debug/5q6o6j47/x86",
+    "/home/sumit/AndroidStudioProjects/photon/android/app/.cxx/Debug/533r3f40/x86",
     "{LIST_OF_TARGETS_TO_BUILD}"
   ],
   "libraries": {},

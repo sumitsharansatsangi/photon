@@ -167,17 +167,15 @@ await FastDB.flush();
 Future<void> storeSentDocumentHistory(List<String?> docs,
     {String type = "file"}) async {
   if(FastDB.getSentHistory()== null){FastDB.userBuilder.sentHistory = List.empty();}
-  List sentFiles = FastDB.getSentHistory()??[];
+  List<Info> sentFiles = FastDB.getSentHistory()??[];
   sentFiles.insertAll(
     0,
-    docs
-        .map((e) => {
-              "fileName": e!.split(Platform.pathSeparator).last,
-              "date": DateTime.now(),
-              "filePath": e,
-              "type": type
-            })
-        .toList(),
+    [for(var doc in docs)
+     Info(InfoObjectBuilder(
+        filePath: doc,
+        date: DateTime.now().toString(),
+        type: type,
+      ).toBytes())],
   );
 }
 
