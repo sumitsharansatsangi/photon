@@ -23,7 +23,7 @@ class _HandleIntentUIState extends State<HandleIntentUI> {
       ),
       body: FutureBuilder(
         future: ReceiveSharingIntent.instance.getInitialMedia(),
-        builder: (context, AsyncSnapshot<List<SharedMediaFile>> snap) {
+        builder: (context, AsyncSnapshot<List<SharedMediaFile>>  snap) {
           isLoading = false;
           if (snap.connectionState == ConnectionState.done) {
             if (widget.isRawText!) {

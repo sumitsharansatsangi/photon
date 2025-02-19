@@ -1,5 +1,4 @@
-import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
+import 'package:photon/db/fastdb.dart';
 import 'package:unicons/unicons.dart';
 
 import '../models/sender_model.dart';
@@ -17,7 +16,7 @@ infoList(
     ),
     if (!sender && senderModel.avatar != null) ...{
       Padding(
-          padding: EdgeInsets.only(left: 8.0),
+          padding: const EdgeInsets.only(left: 8.0),
           child: Image.memory(
             senderModel.avatar!,
             width: 24,
@@ -75,7 +74,7 @@ infoList(
   ];
   var serverDataList = [
     {'type': 'IP'.padRight(12), 'value': senderModel.ip},
-    {'type': 'User'.padRight(10), 'value': Hive.box('appData').get('username')},
+    {'type': 'User'.padRight(10), 'value': FastDB.getUsername()??''},
     {'type': 'OS'.padRight(11), 'value': senderModel.os},
     {'type': 'Version', 'value': senderModel.version}
   ];

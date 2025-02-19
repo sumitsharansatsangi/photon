@@ -9,7 +9,7 @@ import 'package:photon/services/file_services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HistoryPage extends StatefulWidget {
-  const HistoryPage({Key? key}) : super(key: key);
+  const HistoryPage({super.key});
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();
@@ -18,7 +18,6 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState extends State<HistoryPage>
     with TickerProviderStateMixin {
   late TabController tabController;
-
   @override
   void initState() {
     super.initState();

@@ -21,15 +21,14 @@ class ProgressPage extends StatefulWidget {
   final String dataType;
   final String? parentDirectory;
   final String? token;
-
   const ProgressPage({
-    Key? key,
+    super.key,
     required this.senderModel,
     required this.secretCode,
     required this.dataType,
     this.parentDirectory,
     this.token,
-  }) : super(key: key);
+  });
 
   @override
   State<ProgressPage> createState() => _ProgressPageState();
@@ -41,7 +40,6 @@ class _ProgressPageState extends State<ProgressPage> {
   bool isDownloaded = false;
   bool isLoading = false;
   TextEditingController fileNameController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -70,7 +68,7 @@ class _ProgressPageState extends State<ProgressPage> {
         ? MediaQuery.of(context).size.width / 1.8
         : MediaQuery.of(context).size.width / 1.4;
 
-    return WillPopScope(
+    return PopScope(
       child: ValueListenableBuilder(
         valueListenable: AdaptiveTheme.of(context).modeChangeNotifier,
         builder: (_, AdaptiveThemeMode mode, __) {
@@ -82,7 +80,7 @@ class _ProgressPageState extends State<ProgressPage> {
               backgroundColor: mode.isDark ? Colors.blueGrey.shade900 : null,
               title: Obx(
                 () => Text(
-                  widget.dataType == "raw_text"
+                    widget.dataType == "raw_text"
                       ? rawTextController.rawText.value == ""
                           ? "Receiving"
                           : "Received"
@@ -172,15 +170,14 @@ class _ProgressPageState extends State<ProgressPage> {
                                                   right: 10,
                                                   child: Container(
                                                     decoration: BoxDecoration(
-                                                      color: mode.isDark
-                                                          ? const Color
-                                                              .fromARGB(
-                                                              255, 46, 46, 46)
-                                                          : Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
+                                                        color: mode.isDark
+                                                            ? const Color
+                                                                .fromARGB(
+                                                                255, 46, 46, 46)
+                                                            : Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8)),
                                                     child: IconButton(
                                                       color:
                                                           const Color.fromARGB(
@@ -190,13 +187,13 @@ class _ProgressPageState extends State<ProgressPage> {
                                                               155),
                                                       onPressed: () async {
                                                         await Clipboard.setData(
-                                                          ClipboardData(
-                                                              text:
-                                                                  rawTextController
-                                                                      .rawText
-                                                                      .value),
-                                                        );
-                                                        if (mounted) {
+                                                            ClipboardData(
+                                                                text:
+                                                                    rawTextController
+                                                                        .rawText
+                                                                        .value));
+                                                        if (mounted &&
+                                                            context.mounted) {
                                                           ScaffoldMessenger.of(
                                                                   context)
                                                               .showSnackBar(
@@ -231,7 +228,7 @@ class _ProgressPageState extends State<ProgressPage> {
                       },
                     ),
                   )
-                : FutureBuilder(
+                :FutureBuilder(
                     future: FileUtils.getFileNames(widget.senderModel!,widget.token),
                     builder: (context, AsyncSnapshot snap) {
                       if (snap.connectionState == ConnectionState.done) {
@@ -529,14 +526,12 @@ class _ProgressPageState extends State<ProgressPage> {
                                   await FileUtils.saveTextFile(
                                       rawTextController.rawText.value,
                                       fileNameController.text);
-                                  if (mounted) {
+                                  if (mounted && context.mounted) {
                                     Navigator.of(context).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            "File is saved as ${await FileUtils.getTextFilePath(fileNameController.text)}"),
-                                      ),
-                                    );
+                                        SnackBar(
+                                            content: Text(
+                                                "File is saved as ${await FileUtils.getTextFilePath(fileNameController.text)}")));
                                   }
                                 },
                                 child: const Text(
@@ -560,10 +555,34 @@ class _ProgressPageState extends State<ProgressPage> {
           );
         },
       ),
-      onWillPop: () async {
+      onPopInvokedWithResult: (b, r) async {
         willPop = await progressPageWillPopDialog(context);
-        return willPop;
       },
     );
   }
+
+  // openFile(String filepath, SenderModel senderModel) async {
+  //   String path = (await FileUtils.getSavePath(filepath, senderModel))
+  //       .replaceAll(r'\', '/');
+  //   if (Platform.isAndroid || Platform.isIOS) {
+  //     try {
+  //       OpenFile.open(path);
+  //     } catch (_) {
+  //       // ignore: use_build_context_synchronously
+  //       showSnackBar(context, 'No corresponding app found');
+  //     }
+  //   } else {
+  //     try {
+  //       launchUrl(
+  //         Uri.parse(
+  //           path,
+  //         ),
+  //       );
+  //     } catch (e) {
+  //       // ignore: use_build_context_synchronously
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Unable to open the file')));
+  //     }
+  //   }
+  // }
 }

@@ -1,12 +1,11 @@
+import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:installed_apps/app_info.dart';
+// import 'package:flutter/services.dart';
 import 'package:photon/components/constants.dart';
 import 'package:photon/components/snackbar.dart';
 import 'package:photon/services/photon_sender.dart';
 import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
-import 'package:installed_apps/installed_apps.dart';
 
 class AppsList extends StatefulWidget {
   const AppsList({super.key});
@@ -16,26 +15,27 @@ class AppsList extends StatefulWidget {
 }
 
 class _AppsListState extends State<AppsList> {
-  static const platform = MethodChannel('dev.abhi.photon');
-  Future<List<AppInfo>> future = InstalledApps.getInstalledApps(true, true);
-  Map<String, String> appToFilePathMapping = {};
-  List<AppInfo> apps = <AppInfo>[];
+  // static const platform = MethodChannel('dev.abhi.photon');
+  final future = DeviceApps.getInstalledApplications(includeAppIcons: true);
+  List apps = [];
   List<String> paths = [];
   TextEditingController searchController = TextEditingController();
-  List<AppInfo> searchData = [];
-  late List<AppInfo> data;
+  Map<String, String> appToFilePathMapping = {};
+  List<Application> searchData = [];
+  late List<Application> data;
   bool isSearched = false;
 
-  Future<String> _getAppPath(String packageName) async {
-    try {
-      final String result = await platform
-          .invokeMethod('getAppPath', {'packageName': packageName});
-      return result;
-    } on PlatformException catch (e) {
-      debugPrint("Failed to get app path: '${e.message}'.");
-      return "";
-    }
-  }
+//  Future<String> _getAppPath(String packageName) async {
+//     try {
+//       final String result = await platform
+//           .invokeMethod('getAppPath', {'packageName': packageName});
+//       return result;
+//     } on PlatformException catch (e) {
+//       debugPrint("Failed to get app path: '${e.message}'.");
+//       return "";
+//     }
+//   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +59,7 @@ class _AppsListState extends State<AppsList> {
                               onPressed: () {
                                 searchData = [];
                                 for (var element in data) {
-                                  if (element.name.toLowerCase().contains(
+                                  if (element.appName.toLowerCase().contains(
                                       searchController.text.toLowerCase())) {
                                     searchData.add(element);
                                   }
@@ -74,14 +74,14 @@ class _AppsListState extends State<AppsList> {
                       );
                     });
               },
-              icon: Icon(Icons.search))
+              icon: const Icon(Icons.search))
         ],
       ),
       body: FutureBuilder(
           future: future,
-          builder: (context, AsyncSnapshot<List<AppInfo>> snap) {
+          builder: (context, AsyncSnapshot snap) {
             if (snap.connectionState == ConnectionState.done) {
-              data = snap.data!;
+              data = snap.data;
               apps = isSearched ? searchData : data;
               //create list of bool
               List<bool> boolList = List.generate(apps.length, (i) => false);
@@ -100,26 +100,22 @@ class _AppsListState extends State<AppsList> {
                             builder: ((context, ListTileState value, child) =>
                                 ListTile(
                                   selected: value.isSelected[item],
-                                  onTap: () async {
+                                  onTap: () async{
                                     value.isSelect(item);
                                     if (value.isSelected[item]) {
-                                      var path = await _getAppPath(
-                                          apps[item].packageName);
-                                      appToFilePathMapping[
-                                          apps[item].packageName] = path;
-                                      paths.add(path);
+                                      // var path = await _getAppPath(
+                                      //     apps[item].packageName);
+                                      paths.add(apps[item].apkFilePath);
                                     } else {
-                                      var packageName = apps[item].packageName;
-                                      paths.remove(
-                                          appToFilePathMapping[packageName]);
+                                      paths.remove(apps[item].apkFilePath);
                                     }
                                   },
                                   leading: Image.memory(
-                                    apps[item].icon!,
+                                    apps[item].icon,
                                     width: 36,
                                   ),
                                   title: Text(
-                                    apps[item].name,
+                                    apps[item].appName,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   trailing: value.isSelected[item]
@@ -153,9 +149,7 @@ class _AppsListState extends State<AppsList> {
 
 class ListTileState extends ChangeNotifier {
   List<bool> isSelected;
-
   ListTileState({required this.isSelected});
-
   isSelect(i) {
     isSelected[i] = !isSelected[i];
     notifyListeners();

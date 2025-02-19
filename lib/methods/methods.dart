@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
+import 'package:photon/db/data_generated.dart';
+import 'package:photon/db/fastdb.dart';
 import '../controllers/controllers.dart';
 
 String formatTime(int seconds) {
@@ -31,7 +32,7 @@ Future<List<String>> getIP() async {
   for (NetworkInterface netInt in listOfInterfaces) {
     for (InternetAddress internetAddress in netInt.addresses) {
       if (internetAddress.address.toString().startsWith('192.168') ||
-          internetAddress.address.toString().startsWith('10.')) {
+          internetAddress.address.toString().startsWith('10.')){
         ipList.add(internetAddress.address);
       }
     }
@@ -91,7 +92,7 @@ Widget getFileIcon(String extn) {
     case 'jpeg':
       return SvgPicture.asset(
         'assets/icons/jpeg.svg',
-        color: Colors.cyanAccent,
+        colorFilter: ColorFilter.mode( Colors.cyanAccent, BlendMode.srcIn, ),
         width: 30,
         height: 30,
       );
@@ -104,14 +105,14 @@ Widget getFileIcon(String extn) {
     case 'exe':
       return SvgPicture.asset(
         'assets/icons/exe.svg',
-        color: Colors.blueAccent,
+        colorFilter: ColorFilter.mode( Colors.blueAccent, BlendMode.srcIn, ),
         width: 30,
         height: 30,
       );
     case 'apk':
       return SvgPicture.asset(
         'assets/icons/android.svg',
-        color: Colors.greenAccent.shade400,
+        colorFilter: ColorFilter.mode( Colors.greenAccent.shade400, BlendMode.srcIn, ),
         width: 30,
         height: 30,
       );
@@ -124,12 +125,6 @@ Widget getFileIcon(String extn) {
     case 'mp4':
       return const Icon(
         Icons.video_collection_rounded,
-        size: 30,
-        color: Colors.orangeAccent,
-      );
-    case "directory":
-      return const Icon(
-        Icons.folder,
         size: 30,
         color: Colors.orangeAccent,
       );
@@ -159,30 +154,20 @@ getStatusWidget(RxString status, idx) {
   }
 }
 
-storeHistory(Box box, String savePath) {
-  if (box.get('fileInfo') == null) {
-    box.put('fileInfo', []);
-  }
-  List fileInfo = box.get('fileInfo') as List;
-  fileInfo.insert(
-    0,
-    {
-      'fileName': savePath.split(Platform.pathSeparator).last,
-      'date': DateTime.now(),
-      'filePath': savePath
-    },
-  );
-
-  box.put('fileInfo', fileInfo);
+storeHistory(String savePath) async{
+  if(FastDB.getFileInfo()== null){FastDB.userBuilder.fileInfo = List.empty();}
+ FastDB.putFileInfo([InfoObjectBuilder(filePath: savePath, date: DateTime.now().toString())]);
+await FastDB.flush();
 }
 
+// Future<void> storeSentFileHistory(List<String?> files) async {
+//     if(FastDB.getSentHistory()== null){FastDB.userBuilder.sentHistory = List.empty();}
+//  FastDB.putSentHistory([ for(final file in files)  InfoObjectBuilder(filePath: file, date: DateTime.now().toString())]);
+//  await FastDB.flush();
 Future<void> storeSentDocumentHistory(List<String?> docs,
     {String type = "file"}) async {
-  Box box = await Hive.openBox('appData');
-  if (box.get('sentHistory') == null) {
-    box.put('sentHistory', []);
-  }
-  List sentFiles = box.get('sentHistory');
+  if(FastDB.getSentHistory()== null){FastDB.userBuilder.sentHistory = List.empty();}
+  List sentFiles = FastDB.getSentHistory()??[];
   sentFiles.insertAll(
     0,
     docs
@@ -196,26 +181,22 @@ Future<void> storeSentDocumentHistory(List<String?> docs,
   );
 }
 
-getSentFileHistory() async {
-  Box box = await Hive.openBox('appData');
-  List sentFilesHistory = box.get('sentHistory') as List;
-  return sentFilesHistory;
+getSentFileHistory(){
+  return FastDB.getSentHistory();
 }
 
-getHistory() async {
-  var box = await Hive.openBox('appData');
-  return box.get('fileInfo');
+getHistory(){
+  return FastDB.getFileInfo();
 }
 
-clearSentHistory() async {
-  var box = await Hive.openBox('appData');
-  box.delete('sentHistory');
+clearSentHistory()async{
+  FastDB.userBuilder.sentHistory = List.empty();
+  await FastDB.flush();
 }
 
 clearHistory() async {
-  Hive.openBox('appData').then((box) => box.delete('fileInfo')).catchError((e) {
-    debugPrint(e.toString());
-  });
+  FastDB.userBuilder.fileInfo = List.empty();
+  await FastDB.flush();
 }
 
 String getDateString(DateTime date) {

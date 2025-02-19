@@ -6,8 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
-import 'package:photon/components/snackbar.dart';
+import 'package:photon/db/fastdb.dart';
 import 'package:photon/methods/methods.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/services/device_service.dart';
@@ -18,12 +17,11 @@ import 'package:get_it/get_it.dart';
 class PhotonReceiver {
   static late int _secretCode;
   static late Map<String, dynamic> filePathMap;
-  static final Box _box = Hive.box('appData');
   static late int id;
   static int totalTime = 0;
   static final dio = Dio();
 
-  /// to get network address [assumes class C address]
+  ///to get network address [assumes class C address]
   static List<String> getNetAddress(List<String> ipList) {
     List<String> netAdd = [];
     for (String ip in ipList) {
@@ -34,7 +32,7 @@ class PhotonReceiver {
     return netAdd;
   }
 
-  /// tries to establish socket connection
+  ///tries to establish socket connection
   static Future<Map<String, dynamic>> _connect(String host, int port) async {
     try {
       var socket = await Socket.connect(host, port)
@@ -46,26 +44,30 @@ class PhotonReceiver {
     }
   }
 
-  /// check if ip & port pair represent photon-server
+  ///check if ip & port pair represent photon-server
   static isPhotonServer(String ip, String port) async {
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final SecurityContext scontext = SecurityContext();
-        HttpClient client = HttpClient(context: scontext);
-        client.badCertificateCallback =
-            (X509Certificate cert, String host, int port) {
-          return host == ip && port == 4040;
-        };
-        return client;
-      },
-    );
-    var resp = await dio
-        .get('${DeviceService.protocolFromSender}://$ip:$port/photon-server');
-    Map<String, dynamic> senderInfo = jsonDecode(resp.data);
-    return SenderModel.fromJson(senderInfo);
+    try {
+      dio.httpClientAdapter = IOHttpClientAdapter(
+        createHttpClient: () {
+          final SecurityContext scontext = SecurityContext();
+          HttpClient client = HttpClient(context: scontext);
+          client.badCertificateCallback =
+              (X509Certificate cert, String host, int port) {
+            return host == ip && port == 4040;
+          };
+          return client;
+        },
+      );
+      var resp = await dio
+          .get('${DeviceService.protocolFromSender}://$ip:$port/photon-server');
+      Map<String, dynamic> senderInfo = jsonDecode(resp.data);
+      return SenderModel.fromJson(senderInfo);
+    } catch (_) {
+      return null;
+    }
   }
 
-  /// scan presence of photon-server[driver func]
+  ///scan presence of photon-server[driver func]
   static Future<List<SenderModel>> scan() async {
     List<Future<Map<String, dynamic>>> list = [];
     List<SenderModel> photonServers = [];
@@ -112,7 +114,7 @@ class PhotonReceiver {
     for (var service in discoveredServices) {
       String? ip = service?.attributes["ip"];
       String? httpsEnabled = service?.attributes["https_enabled"];
-      if (ip != null) {
+      if (ip != null && httpsEnabled != null) {
         hostToProtocolMapping[ip] = httpsEnabled;
         Future<Map<String, dynamic>> res = _connect(ip, 4040);
         list.add(res);
@@ -123,9 +125,9 @@ class PhotonReceiver {
       if (item.containsKey('host')) {
         var httpsEnabled = hostToProtocolMapping[item["host"]];
         if (httpsEnabled == "true") {
-          _box.put("protocol_from_sender", "https");
+          FastDB.putProtocol("https");
         } else {
-          _box.put("protocol_from_sender", "http");
+          FastDB.putProtocol("http");
         }
         Future<dynamic> resp;
         if ((resp = (isPhotonServer(
@@ -149,17 +151,15 @@ class PhotonReceiver {
   }
 
   static isRequestAccepted(SenderModel senderModel) async {
-    String username = _box.get('username');
-    var avatar = await rootBundle.load(_box.get('avatarPath'));
+    String username = FastDB.getUsername() ?? '';
+    var avatar = await rootBundle.load(FastDB.getAvatarPath() ?? '');
     var resp = await dio.get(
-      '${DeviceService.protocolFromSender}://${senderModel.ip}:${senderModel.port}/get-code',
-      options: Options(headers: {
-        'receiver-name': username,
-        'os': Platform.operatingSystem,
-        'avatar': avatar.buffer.asUint8List().toString()
-        // 'avatar': avatar.buffer.asUint8List().toString()s
-      }),
-    );
+        '${DeviceService.protocolFromSender}://${senderModel.ip}:${senderModel.port}/get-code',
+        options: Options(headers: {
+          'receiver-name': username,
+          'os': Platform.operatingSystem,
+          'avatar': avatar.buffer.asUint8List().toString()
+        }));
     id = Random().nextInt(10000);
     var senderRespData = jsonDecode(resp.data);
     return senderRespData;
@@ -174,14 +174,14 @@ class PhotonReceiver {
             headers: {
               "receiverID": id.toString(),
               "os": Platform.operatingSystem,
-              "hostName": _box.get('username'),
+              "hostName": FastDB.getUsername() ?? '',
               "currentFile": '${fileIndex + 1}',
               "isCompleted": '$isCompleted',
               "Authorization": token,
             },
           ));
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -265,6 +265,7 @@ class PhotonReceiver {
           }));
       filePathMap = jsonDecode(resp.data);
       _secretCode = secretCode;
+
       for (int fileIndex = 0;
           fileIndex < filePathMap['paths']!.length;
           fileIndex++) {
@@ -284,8 +285,8 @@ class PhotonReceiver {
           } else {
             filePath = filePathMap['paths'][fileIndex];
           }
-          ;
-          await getFile(filePath, fileIndex, token, senderModel);
+
+          await getFile(filePath, fileIndex,token, senderModel);
         }
       }
       // sends after last file is sent
@@ -332,7 +333,7 @@ class PhotonReceiver {
     bool isDirectory = false,
   }) async {
     PercentageController getInstance = GetIt.I<PercentageController>();
-    // creates instance of cancelToken and inserts it to list
+    //creates instance of cancelToken and inserts it to list
     getInstance.cancelTokenList.insert(fileIndex, CancelToken());
     String dirPath =
         await FileUtils.getDirectorySavePath(senderModel, parentDirectory);
@@ -406,14 +407,14 @@ class PhotonReceiver {
       getInstance.speed.value = 0.0;
       //after completion of download mark it as true
       getInstance.isReceived[fileIndex].value = true;
-      storeHistory(_box, savePath);
+      storeHistory(savePath);
       getInstance.fileStatus[fileIndex].value = "downloaded";
     } catch (e) {
       getInstance.speed.value = 0;
       getInstance.fileStatus[fileIndex].value = "cancelled";
       getInstance.isCancelled[fileIndex].value = true;
 
-      if (!CancelToken.isCancel(e as DioError)) {
+      if (!CancelToken.isCancel(e as DioException)) {
         debugPrint("Dio error");
       } else {
         debugPrint(e.toString());

@@ -3,15 +3,14 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:photon/db/fastdb.dart';
 import 'package:photon/methods/methods.dart';
 import 'package:photon/models/file_model.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/models/share_error_model.dart';
 import 'package:photon/services/device_service.dart';
 import 'package:photon/views/share_ui/share_page.dart';
-import 'package:pointycastle/asymmetric/api.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:hive/hive.dart';
 import 'package:saf_stream/saf_stream.dart';
 import 'package:saf_util/saf_util.dart';
 import 'package:saf_util/saf_util_platform_interface.dart';
@@ -19,7 +18,6 @@ import '../components/dialogs.dart';
 import '../components/snackbar.dart';
 import '../main.dart';
 import 'file_services.dart';
-import 'dart:typed_data';
 import 'dart:math';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:crypto/crypto.dart';
@@ -36,10 +34,8 @@ class PhotonSender {
   static String _parentFolder = "";
   static DeviceService? deviceService;
   static SafUtil safUtils = SafUtil();
-  static final Box _box = Hive.box('appData');
   static bool isHTTPS = true;
   static Map<String, String> tokenMapping = {};
-
   // only for SAF document files
   static List<String?> _decodedFileNames = [];
 
@@ -65,7 +61,6 @@ class PhotonSender {
         _fileList = safDocs.map((item) => item.uri).toList();
         return true;
       }
-      return false;
     }
     _fileList = await FileUtils.pickFiles();
     if (_fileList.isEmpty) {
@@ -159,8 +154,8 @@ class PhotonSender {
                   .forEach((file) {
                 paths.add(file.path);
               });
+              _fileList = paths;
             }
-            _fileList = paths;
           }
           if (_fileList.isEmpty) {
             return {
@@ -234,11 +229,10 @@ class PhotonSender {
       _randomSecretCode = getRandomNumber();
       deviceService = DeviceService.getDeviceService();
       deviceService!.advertise(_address);
-      Box box = Hive.box('appData');
-      String username = box.get('username');
-      avatar =
-          (await rootBundle.load(box.get('avatarPath'))).buffer.asUint8List();
-
+      String username = FastDB.getUsername() ?? '';
+      avatar = (await rootBundle.load(FastDB.getAvatarPath() ?? ''))
+          .buffer
+          .asUint8List();
       serverInf = {
         'ip': _server.address.address,
         'port': _server.port,
@@ -326,7 +320,6 @@ class PhotonSender {
             "filesCount": fileList.length,
             "isCompleted": request.headers['isCompleted']!.first
           });
-          request.response.close();
         } else if (request.requestedUri.toString() ==
             "${DeviceService.serverProtocol}://$_address:4040/$_randomSecretCode/data/type") {
           if (!validateToken(request)) {
@@ -334,7 +327,7 @@ class PhotonSender {
             request.response.close();
             return;
           }
-          String type = "file";
+           String type = "file";
           if (isFolder) {
             type = "folder";
           } else if (isRawText) {
@@ -352,7 +345,7 @@ class PhotonSender {
           request.response.write(jsonEncode({"raw_text": _rawText}));
           request.response.close();
         } else {
-          // uri should be in format $protocol://ip:port/secretcode/file-index
+           // uri should be in format $protocol://ip:port/secretcode/file-index
           if (!validateToken(request)) {
             request.response.write("Invalid token4");
             request.response.close();
@@ -373,7 +366,8 @@ class PhotonSender {
               FileModel fileModel = await FileUtils.extractFileData(
                   fileList[int.parse(
                       request.requestedUri.toString().split('/').last)]!,
-                  isApk: isApk,isExtIntent: isExternalIntent);
+                  isApk: isApk,
+                  isExtIntent: isExternalIntent);
               request.response.headers.contentType = ContentType(
                 'application',
                 'octet-stream',
@@ -392,7 +386,8 @@ class PhotonSender {
               request.response.headers.add('Content-length', fileModel.size);
 
               try {
-                await _streamFileObject(isApk, fileModel, request,isExtIntent: isExternalIntent);
+                await _streamFileObject(isApk, fileModel, request,
+                    isExtIntent: isExternalIntent);
               } catch (_) {}
             } catch (e) {
               request.response.write(e);
@@ -415,7 +410,8 @@ class PhotonSender {
   }
 
   static Future<void> _streamFileObject(
-      bool isApk, FileModel fileModel, HttpRequest request,{bool isExtIntent = false}) async {
+      bool isApk, FileModel fileModel, HttpRequest request,
+      {bool isExtIntent = false}) async {
     // On non android devices [macos,linux,windows
     // Uses real path to stream file
     // Uses cached path for apk files
@@ -448,7 +444,7 @@ class PhotonSender {
           (await ReceiveSharingIntent.instance.getInitialMedia())[0].path;
     }
     Future<Map<String, dynamic>> res = _startServer(_fileList, context,
-        isRawText: extIntentType == "raw_text",isExternalIntent: true);
+        isRawText: extIntentType == "raw_text", isExternalIntent: true);
     return await res;
   }
 
@@ -456,7 +452,7 @@ class PhotonSender {
     try {
       await _server.close();
       await FileUtils.clearCache();
-      if (deviceService != null) {
+       if (deviceService != null) {
         await deviceService!.stopAdvertising();
       }
     } catch (e) {
@@ -488,8 +484,7 @@ class PhotonSender {
     keyPair ??= CryptoUtils.generateRSAKeyPair();
     final privateKey = keyPair.privateKey as RSAPrivateKey;
     final publicKey = keyPair.publicKey as RSAPublicKey;
-    Box box = Hive.box('appData');
-    var user = box.get('username');
+    var user = FastDB.getUsername() ?? '';
     final dn = {
       'CN': user.toString(),
       'O': '',

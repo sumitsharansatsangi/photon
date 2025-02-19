@@ -5,18 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lottie/lottie.dart';
-import 'package:photon/components/components.dart';
 import 'package:photon/methods/methods.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/services/file_services.dart';
 import 'package:photon/views/receive_ui/progress_page.dart';
-import 'package:unicons/unicons.dart';
 import '../../components/constants.dart';
 import '../../controllers/intents.dart';
 import '../../services/photon_receiver.dart';
 
 class ReceivePage extends StatefulWidget {
-  const ReceivePage({Key? key}) : super(key: key);
+  const ReceivePage({super.key});
 
   @override
   State<ReceivePage> createState() => _ReceivePageState();
@@ -28,7 +26,7 @@ class _ReceivePageState extends State<ReceivePage> {
   Future<List<SenderModel>> _scan() async {
     dir = await FileUtils.getSaveDirectory();
     try {
-      List<SenderModel> resp = await PhotonReceiver.scanWithLegacyFallback();
+      List<SenderModel> resp = await PhotonReceiver.scan();
       return resp;
     } catch (_) {}
     return [];
@@ -93,8 +91,8 @@ class _ReceivePageState extends State<ReceivePage> {
                               if (snap.data.length == 0) ...{
                                 Lottie.asset(
                                   'assets/lottie/sender_not_found.json',
-                                  width: 100,
-                                  height: 100,
+                                  width: 200,
+                                  height: 200,
                                 ),
                                 Center(
                                   child: Focus(
@@ -238,7 +236,8 @@ class _ReceivePageState extends State<ReceivePage> {
                                               );
 
                                               if (resp['accepted']) {
-                                                if (mounted) {
+                                                if (mounted &&
+                                                    context.mounted) {
                                                   Navigator.of(context).push(
                                                     MaterialPageRoute(
                                                       builder: (context) {

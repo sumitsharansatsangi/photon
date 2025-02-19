@@ -22,12 +22,11 @@ class ShareHistory {
       required this.date,
       required this.type});
 
-  factory ShareHistory.fromMap(Map<dynamic, dynamic> map) {
-    var type = "file";
+  factory ShareHistory.fromMap(map) {
+   var type = "file";
     if (map.keys.contains("type")) {
       type = map["type"];
     }
-    ;
     return ShareHistory(
       fileName: map['fileName'],
       filePath: map['filePath'],

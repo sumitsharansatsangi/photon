@@ -1,5 +1,6 @@
 import "package:receive_sharing_intent/receive_sharing_intent.dart";
 
+
 List<String> textFileExtensions = [
   "txt", // Plain text
   "html", "htm", // HTML

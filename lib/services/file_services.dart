@@ -5,17 +5,17 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hive/hive.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:photon/db/fastdb.dart';
 
 import 'package:photon/models/file_model.dart';
+import 'package:photon/services/device_service.dart';
 import 'package:saf_util/saf_util.dart';
 import 'package:saf_util/saf_util_platform_interface.dart';
 
 import '../models/sender_model.dart';
-import 'device_service.dart';
 
 class FileUtils {
   static int filePathRetries = 0;
@@ -43,7 +43,8 @@ class FileUtils {
     }
   }
 
-  static Future<FileModel> extractFileData(path, {bool isApk = false,isExtIntent = false}) async {
+  static Future<FileModel> extractFileData(path,
+      {bool isApk = false, isExtIntent = false}) async {
     // if platform is android use SAF
     // for APK fallback to old flow
     if (Platform.isAndroid && !isApk && !isExtIntent) {
@@ -82,8 +83,11 @@ class FileUtils {
 
   static Future<String> getSavePath(String filePath, SenderModel senderModel,
       {bool isDirectory = false, String directoryPath = ""}) async {
+    // ignore: unused_local_variable
     String? savePath;
     Directory? directory;
+    //extract filename from filepath send by the sender
+
     String fileName =
         filePath.split(senderModel.os == "windows" ? r'\' : r'/').last;
     directory = await getSaveDirectory();
@@ -97,6 +101,7 @@ class FileUtils {
     }
     return savePath;
   }
+
 
   static Future<String> getSavePathForReceiving(
       String filePath, SenderModel senderModel,
@@ -122,10 +127,10 @@ class FileUtils {
     return path;
   }
 
-  //for receiver to display filenames
-  static Future<List<String>> getFileNames(
-      SenderModel senderModel, token) async {
-    dio.httpClientAdapter = IOHttpClientAdapter(
+
+//for receiver to display filenames
+  static Future<List<String>> getFileNames(SenderModel senderModel, token) async {
+      dio.httpClientAdapter = IOHttpClientAdapter(
       createHttpClient: () {
         final SecurityContext scontext = SecurityContext();
         HttpClient client = HttpClient(context: scontext);
@@ -136,10 +141,8 @@ class FileUtils {
         return client;
       },
     );
-
-    var resp = await dio.get(
-        '${DeviceService.protocolFromSender}://${senderModel.ip}:${senderModel.port}/getpaths',
-        options: Options(headers: {
+    var resp = await dio
+        .get('${DeviceService.protocolFromSender}://${senderModel.ip}:${senderModel.port}/getpaths',  options: Options(headers: {
           "Authorization": token,
         }));
     Map<String, dynamic> filePathMap = jsonDecode(resp.data);
@@ -165,15 +168,14 @@ class FileUtils {
     return fileNames;
   }
 
-  static editDirectoryPath(String path) {
-    var box = Hive.box('appData');
-    box.put('directoryPath', path);
+  static editDirectoryPath(String path) async {
+    FastDB.putDirectoryPath(path);
+    await FastDB.flush();
   }
 
   static Future<Directory> getSaveDirectory() async {
     late Directory directory;
-    var box = Hive.box('appData');
-    if (box.get('directoryPath') == null) {
+    if (FastDB.getDirectoryPath() == null) {
       switch (Platform.operatingSystem) {
         case "android":
           var temp = Directory('/storage/emulated/0/Download/');
@@ -196,7 +198,7 @@ class FileUtils {
           debugPrint("Unable to get file-save path");
       }
     } else {
-      directory = Directory(box.get('directoryPath'));
+      directory = Directory(FastDB.getDirectoryPath() ?? "");
     }
 
     var tempDir = directory;
@@ -244,7 +246,6 @@ class FileUtils {
     savePath = p.join(directory.path, directoryPath);
     savePath = savePath.replaceAll(
         senderModel.os == "windows" ? r'\' : r'/', Platform.pathSeparator);
-
     List temp = savePath.split("");
     temp.removeLast();
     return temp.join("");

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hive/hive.dart';
+import 'package:photon/db/fastdb.dart';
 
 class DeviceService {
   static BonsoirService? bonsoirService;
@@ -11,7 +11,6 @@ class DeviceService {
   static String serviceType = "_http._tcp";
   static DeviceService? deviceService;
   List<BonsoirService?> discoveredServices = [];
-  static final Box _box = Hive.box('appData');
 
   static getDeviceService() {
     deviceService ??= DeviceService();
@@ -21,12 +20,12 @@ class DeviceService {
   void advertise(String ip) async {
     try {
       bonsoirService = BonsoirService(
-        name: 'photon_${_box.get("username").toString()}',
+        name: 'photon_${FastDB.getUsername()}',
         type: '_http._tcp',
         port: 4040,
         attributes: {
           "ip": ip,
-          "https_enabled": _box.get("enable_https").toString(),
+          "https_enabled": (FastDB.getEnableHttps()??false).toString(),
         },
       );
       broadcast = BonsoirBroadcast(service: bonsoirService!);
@@ -63,12 +62,12 @@ class DeviceService {
   }
 
   static get protocolFromSender {
-    var protocol = _box.get("protocol_from_sender").toString();
+    var protocol = FastDB.getProtocol().toString();
     return protocol;
   }
 
   static get serverProtocol {
-    bool httpsEnabled = _box.get("enable_https") as bool;
+    bool httpsEnabled = FastDB.getEnableHttps()??false;
     return httpsEnabled ? "https" : "http";
   }
 

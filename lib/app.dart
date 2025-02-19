@@ -4,11 +4,10 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive/hive.dart';
 import 'package:photon/components/snackbar.dart';
+import 'package:photon/db/fastdb.dart';
 import 'package:photon/services/file_services.dart';
-import 'package:photon/views/drawer/about_page.dart';
-import 'package:photon/views/drawer/release_notes.dart';
+// import 'package:photon/views/drawer/about_page.dart';
 import 'package:photon/views/drawer/settings.dart';
 import 'package:photon/views/home/widescreen_home.dart';
 import 'package:unicons/unicons.dart';
@@ -19,7 +18,7 @@ import 'views/drawer/history.dart';
 import 'views/home/mobile_home.dart';
 
 class App extends StatefulWidget {
-  const App({Key? key}) : super(key: key);
+  const App({super.key});
 
   @override
   State<App> createState() => _AppState();
@@ -27,13 +26,10 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   TextEditingController usernameController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
   }
-
-  Box box = Hive.box('appData');
 
   @override
   Widget build(BuildContext context) {
@@ -90,14 +86,14 @@ class _AppState extends State<App> {
                           child: Column(
                             children: [
                               Image.asset(
-                                box.get('avatarPath'),
+                                FastDB.getAvatarPath() ?? '',
                                 width: 90,
                                 height: 90,
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                  box.get('username'),
+                                  FastDB.getUsername() ?? '',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     overflow: TextOverflow.ellipsis,
@@ -142,26 +138,27 @@ class _AppState extends State<App> {
                             }));
                           },
                         ),
-                        ListTile(
+                           ListTile(
                           title: const Text('Enable HTTPS'),
                           trailing: Switch(
-                            value: box.get('enable_https')!,
+                            value: FastDB.getEnableHttps() !,
                             onChanged: (val) async {
                               setState(() {
-                                if (box.get('enable_https') == false) {
-                                  box.put('enable_https', true);
+                                if (FastDB.getEnableHttps() == false) {
+                                  FastDB.putEnableHttps(true);
                                 } else {
-                                  box.put('enable_https', false);
+                                  FastDB.putEnableHttps(false);
                                 }
                               });
-
+                              await FastDB.flush();
+                              if(context.mounted) {
                               await showDialog(
                                 context: context,
                                 builder: (builder) {
                                   return AlertDialog(
                                     title: const Text("Alert"),
                                     content: Text(
-                                      box.get('enable_https') == true
+                                      FastDB.getEnableHttps() == true
                                           ? "Photon uses self-signed certificates to enable HTTPS when enabled by the sender. While it provides additional layer of security with HTTPS and token based validation, make sure to use photon within trusted networks."
                                           : "You have disabled HTTPS, now photon uses legacy mode with unencrypted HTTP while sending. Make sure to use photon within trusted networks. You can switch back to HTTPS anytime",
                                       textAlign: TextAlign.justify,
@@ -176,27 +173,32 @@ class _AppState extends State<App> {
                                     ],
                                   );
                                 },
-                              );
+                              );}
+                              if(context.mounted) {
                               showSnackBar(
                                   context,
-                                  box.get('enable_https') == true
+                                  FastDB.getEnableHttps() == true
                                       ? "HTTPS enabled"
                                       : "HTTPS disabled");
+                              }
                             },
                           ),
                           leading: Icon(Icons.security_rounded,
                               color: mode.isDark ? null : Colors.black),
                         ),
+                   
                         ListTile(
                           leading: SvgPicture.asset(
                             'assets/icons/licenses.svg',
-                            color: mode.isLight ? Colors.black : Colors.white,
+                            colorFilter: ColorFilter.mode(
+                                mode.isDark ? Colors.white : Colors.black,
+                                BlendMode.srcIn),
                           ),
                           onTap: () {
                             showLicensePage(
                                 context: context,
                                 applicationLegalese: 'GPL3 license',
-                                applicationVersion: "3.0.0",
+                                applicationVersion: "2.0.0",
                                 applicationIcon: Image.asset(
                                   'assets/images/splash.png',
                                   width: 60,
@@ -224,42 +226,27 @@ class _AppState extends State<App> {
                                 color: mode.isDark ? null : Colors.black),
                             onTap: () async {
                               await FileUtils.clearCache();
-                              if (mounted) {
+                              if (mounted && context.mounted) {
                                 Navigator.of(context).pop();
                                 showSnackBar(context, "Cache cleared");
                               }
                             },
                           ),
                         },
-                        ListTile(
-                          title: const Text('Releases'),
-                          leading: Icon(Icons.new_releases,
-                              color: mode.isDark ? null : Colors.black),
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const ReleaseNotesScreen(
-                                      owner: "abhi16180", repo: "photon");
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                        ListTile(
-                          title: const Text('About'),
-                          leading: Icon(UniconsLine.info_circle,
-                              color: mode.isDark ? null : Colors.black),
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const AboutPage();
-                                },
-                              ),
-                            );
-                          },
-                        ),
+                        // ListTile(
+                        //   title: const Text('About'),
+                        //   leading: Icon(UniconsLine.info_circle,
+                        //       color: mode.isDark ? null : Colors.black),
+                        //   onTap: () {
+                        //     Navigator.of(context).push(
+                        //       MaterialPageRoute(
+                        //         builder: (context) {
+                        //           return const AboutPage();
+                        //         },
+                        //       ),
+                        //     );
+                        //   },
+                        // ),
                       ],
                     ),
                     Positioned(
@@ -276,7 +263,7 @@ class _AppState extends State<App> {
                             const Padding(
                               padding: EdgeInsets.all(8.0),
                               child: Text(
-                                'Photon v3.0.0',
+                                'Photon v 2.0.0',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),

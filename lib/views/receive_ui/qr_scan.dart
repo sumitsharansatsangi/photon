@@ -1,116 +1,102 @@
-import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:photon/models/sender_model.dart';
+import 'package:photon/services/photon_receiver.dart';
 import 'package:photon/views/receive_ui/progress_page.dart';
-import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
-import '../../components/constants.dart';
-import '../../services/photon_receiver.dart';
 
-class QrReceivePage extends StatefulWidget {
-  const QrReceivePage({
-    super.key,
-  });
+class QRScanScreen extends StatefulWidget {
+  static const qrScanScreen = 'QRScanScreen';
+
+  const QRScanScreen({super.key});
 
   @override
-  State<QrReceivePage> createState() => _QrReceivePageState();
+  State<QRScanScreen> createState() => _QRScanScreenState();
 }
 
-class _QrReceivePageState extends State<QrReceivePage> {
-  _scan(BuildContext context) async {
-    if (context.mounted) {
-      await Permission.camera.request();
-      late String? resp;
-      if (context.mounted) {
-        resp = await SimpleBarcodeScanner.scanBarcode(context);
-      }
-      return resp;
-    } else {
-      throw Exception("Not mounted");
-    }
-  }
+class _QRScanScreenState extends State<QRScanScreen> {
+  MobileScannerController cameraController = MobileScannerController();
+  late final ValueNotifier<TorchState> torchState;
 
-  bool isDenied = false;
-  bool hasErr = false;
-  late StateSetter innerState;
+  @override
+  void initState() {
+    super.initState();
+    torchState = ValueNotifier<TorchState>(
+        cameraController.value.torchState); 
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: AdaptiveTheme.of(context).modeChangeNotifier,
-      builder: (_, AdaptiveThemeMode mode, __) {
-        return Scaffold(
-            appBar: AppBar(
-              backgroundColor: mode.isDark ? Colors.blueGrey.shade900 : null,
-              title: const Text(" QR - receive"),
-              leading: BackButton(
-                color: Colors.white,
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              flexibleSpace: mode.isLight
-                  ? Container(
-                      decoration: appBarGradient,
-                    )
-                  : null,
-            ),
-            body: FutureBuilder(
-              future: _scan(context),
-              builder: (context, AsyncSnapshot snap) {
-                if (snap.connectionState == ConnectionState.done) {
-                  handleQrReceive(snap.data);
-                  return StatefulBuilder(
-                    builder: (BuildContext context, sts) {
-                      innerState = sts;
-                      return hasErr
-                          ? const Center(
-                              child: Text(
-                                'Wrong QR code or \n Devices are not connected to same network',
-                                textAlign: TextAlign.justify,
-                              ),
-                            )
-                          : isDenied
-                              ? const Center(
-                                  child: Text('Sender denied,please retry'),
-                                )
-                              : const Center(
-                                  child: Text("Waiting for sender to approve"),
-                                );
-                    },
-                  );
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            color: Colors.white,
+            icon: ValueListenableBuilder(
+              valueListenable: torchState,
+              builder: (context, state, child) {
+                switch (state) {
+                  case TorchState.off:
+                    return const Icon(Icons.flash_off, color: Colors.grey);
+                  case TorchState.on:
+                    return const Icon(Icons.flash_on, color: Colors.yellow);
+                  case TorchState.auto:
+                    return const Icon(Icons.flash_auto, color: Colors.grey);
+                  case TorchState.unavailable:
+                    return const Icon(Icons.no_flash_rounded,
+                        color: Colors.grey);
                 }
               },
             ),
-            floatingActionButton: FloatingActionButton.extended(
-              backgroundColor: mode.isDark ? Colors.blueGrey.shade900 : null,
-              onPressed: () async {
-                setState(() {
-                  hasErr = isDenied = false;
-                });
+            iconSize: 32.0,
+            onPressed: () => cameraController.toggleTorch(),
+          ),
+        ],
+      ),
+      body: MobileScanner(
+          controller: cameraController,
+          onDetect: (barcodeCapture) {
+            String? code = barcodeCapture.barcodes.first.displayValue;
+            if (code == null) {
+              Navigator.pop(context);
+              _showDialog(context, 'Wrong QR code or \n Devices are not connected to same network.');
+            } else {
+             handleQrReceive(code);
+            }
+          }),
+    );
+  }
+
+  void _showDialog(BuildContext context, String message ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Message'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
               },
-              label: const Text('Retry'),
-              icon: const Icon(
-                Icons.refresh,
-                color: Color.fromARGB(255, 75, 231, 81),
-              ),
-            ));
+              child: Text('Close'),
+            ),
+          ],
+        );
       },
     );
   }
 
-  handleQrReceive(link) async {
+ handleQrReceive(link) async {
     try {
       String host = Uri.parse(link).host;
       int port = Uri.parse(link).port;
       SenderModel senderModel =
           await PhotonReceiver.isPhotonServer(host, port.toString());
 
-      var resp = await PhotonReceiver.isRequestAccepted(
+      final resp = await PhotonReceiver.isRequestAccepted(
         senderModel,
       );
       if (resp['accepted']) {
@@ -122,23 +108,22 @@ class _QrReceivePageState extends State<QrReceivePage> {
                   senderModel: senderModel,
                   secretCode: resp['code'],
                   dataType: resp['type'],
-                  token: resp['token'],
-                  parentDirectory: resp['parent_folder'],
                 );
               },
             ),
           );
         }
       } else {
-        // ignore: use_build_context_synchronously
-        innerState(() {
-          isDenied = true;
-        });
+        if (mounted &&context.mounted) {
+        _showDialog(context,"Sender denied,please retry");
+        }
       }
     } catch (_) {
-      innerState(() {
-        hasErr = true;
-      });
+      if (mounted &&context.mounted) {
+      _showDialog(context, "An Error occurred");
+    }
     }
   }
+
+
 }

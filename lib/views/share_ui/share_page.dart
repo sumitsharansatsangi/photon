@@ -2,7 +2,6 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:photon/components/constants.dart';
 import 'package:photon/components/dialogs.dart';
@@ -10,14 +9,14 @@ import 'package:photon/controllers/controllers.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/services/photon_sender.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:photon/db/fastdb.dart';
 
 import '../../components/components.dart';
 
 class SharePage extends StatefulWidget {
   final bool? isRawText;
   final bool? isFolder;
-
-  const SharePage({Key? key, this.isRawText, this.isFolder}) : super(key: key);
+  const SharePage({super.key, this.isRawText, this.isFolder});
 
   @override
   State<SharePage> createState() => _SharePageState();
@@ -30,12 +29,23 @@ class _SharePageState extends State<SharePage> {
   late double height;
   bool willPop = false;
   var receiverDataInst = GetIt.I.get<ReceiverDataController>();
-  Box box = Hive.box("appData");
   @override
   Widget build(BuildContext context) {
     width = MediaQuery.of(context).size.width;
     height = MediaQuery.of(context).size.height;
-    return WillPopScope(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+    if (didPop) return; // If already popped, do nothing.
+
+    bool willPop = await sharePageWillPopDialog(context);
+    if (willPop) {
+      GetIt.I.get<ReceiverDataController>().receiverMap.clear();
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+  },
       child: ValueListenableBuilder(
           valueListenable: AdaptiveTheme.of(context).modeChangeNotifier,
           builder: (_, AdaptiveThemeMode mode, __) {
@@ -104,7 +114,7 @@ class _SharePageState extends State<SharePage> {
                         },
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: box.get('enable_https')== true
+                          child: FastDB.getEnableHttps()== true
                               ? Text(
                                   "You are using HTTPS. Please make sure receiver also has photon version 3.0.0 or Above\nAsk receiver to tap on receive button",
                                   style: TextStyle(
@@ -233,11 +243,7 @@ class _SharePageState extends State<SharePage> {
                   ),
                 ));
           }),
-      onWillPop: () async {
-        willPop = await sharePageWillPopDialog(context);
-        GetIt.I.get<ReceiverDataController>().receiverMap.clear();
-        return willPop;
-      },
+     
     );
   }
 }
