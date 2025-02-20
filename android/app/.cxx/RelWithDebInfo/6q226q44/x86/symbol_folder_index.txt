@@ -1,0 +1,1 @@
+/home/sumit/AndroidStudioProjects/photon/build/app/intermediates/cxx/RelWithDebInfo/6q226q44/obj/x86

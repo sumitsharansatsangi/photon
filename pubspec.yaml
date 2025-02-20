@@ -49,7 +49,8 @@ dependencies:
   page_transition:
   introduction_screen: ^3.1.14
   mailto: ^2.0.0
-  receive_sharing_intent: ^1.8.0
+  receive_sharing_intent:
+    git: https://github.com/sumitsharansatsangi/receive_sharing_intent.git
   modal_bottom_sheet:
   flutter_displaymode: ^0.6.0
   adaptive_theme:

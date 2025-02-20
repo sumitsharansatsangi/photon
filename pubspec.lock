@@ -1005,11 +1005,12 @@ packages:
   receive_sharing_intent:
     dependency: "direct main"
     description:
-      name: receive_sharing_intent
-      sha256: ec76056e4d258ad708e76d85591d933678625318e411564dcb9059048ca3a593
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.8.1"
+      path: "."
+      ref: HEAD
+      resolved-ref: "19d39fabedcdd04438c182771ba901f43f56a95a"
+      url: "https://github.com/sumitsharansatsangi/receive_sharing_intent.git"
+    source: git
+    version: "1.8.0"
   rxdart:
     dependency: transitive
     description:
