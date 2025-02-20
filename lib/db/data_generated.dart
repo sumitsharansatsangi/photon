@@ -90,7 +90,7 @@ class User {
       const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 6);
   List<Info>? get sentHistory => const fb.ListReader<Info>(Info.reader)
       .vTableGetNullable(_bc, _bcOffset, 8);
-  List<Info>? get fileInfo => const fb.ListReader<Info>(Info.reader)
+  List<Info>? get receivedHistory => const fb.ListReader<Info>(Info.reader)
       .vTableGetNullable(_bc, _bcOffset, 10);
   bool get isIntroRead =>
       const fb.BoolReader().vTableGet(_bc, _bcOffset, 12, false);
@@ -107,7 +107,7 @@ class User {
 
   @override
   String toString() {
-    return 'User{username: $username, avatarPath: $avatarPath,sentHistory: $sentHistory, fileInfo: $fileInfo, isIntroRead: $isIntroRead,queryPackages: $queryPackages, isDarkTheme: $isDarkTheme, directoryPath: $directoryPath, enableHttps: $enableHttps, protocol : $protocol}';
+    return 'User{username: $username, avatarPath: $avatarPath,sentHistory: $sentHistory, fileInfo: $receivedHistory, isIntroRead: $isIntroRead,queryPackages: $queryPackages, isDarkTheme: $isDarkTheme, directoryPath: $directoryPath, enableHttps: $enableHttps, protocol : $protocol}';
   }
 }
 
@@ -122,7 +122,7 @@ class UserObjectBuilder extends fb.ObjectBuilder {
   String? username;
   String? avatarPath;
   List<InfoObjectBuilder>? sentHistory;
-  List<InfoObjectBuilder>? fileInfo;
+  List<InfoObjectBuilder>? receivedHistory;
   bool? isIntroRead;
   bool? queryPackages;
   bool? isDarkTheme;
@@ -134,7 +134,7 @@ class UserObjectBuilder extends fb.ObjectBuilder {
     this.username,
     this.avatarPath,
     this.sentHistory,
-    this.fileInfo,
+    this.receivedHistory,
     this.isIntroRead,
     this.queryPackages,
     this.isDarkTheme,
@@ -150,10 +150,10 @@ class UserObjectBuilder extends fb.ObjectBuilder {
         username == null ? null : fbBuilder.writeString(username ?? "");
     final int? avatarPathOffset =
         avatarPath == null ? null : fbBuilder.writeString(avatarPath ?? "");
-    final int? fileInfoOffset = fileInfo == null
+    final int? receivedHistoryOffset = receivedHistory == null
         ? null
         : fbBuilder.writeList(
-            fileInfo!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
+            receivedHistory!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
     final int? sentHistoryOffset = sentHistory == null
         ? null
         : fbBuilder.writeList(
@@ -167,7 +167,7 @@ class UserObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addOffset(0, usernameOffset);
     fbBuilder.addOffset(1, avatarPathOffset);
     fbBuilder.addOffset(2, sentHistoryOffset);
-    fbBuilder.addOffset(3, fileInfoOffset);
+    fbBuilder.addOffset(3, receivedHistoryOffset);
     fbBuilder.addBool(4, isIntroRead);
     fbBuilder.addBool(5, queryPackages);
     fbBuilder.addBool(6, isDarkTheme);

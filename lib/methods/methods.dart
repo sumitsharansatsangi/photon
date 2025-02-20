@@ -32,7 +32,7 @@ Future<List<String>> getIP() async {
   for (NetworkInterface netInt in listOfInterfaces) {
     for (InternetAddress internetAddress in netInt.addresses) {
       if (internetAddress.address.toString().startsWith('192.168') ||
-          internetAddress.address.toString().startsWith('10.')){
+          internetAddress.address.toString().startsWith('10.')) {
         ipList.add(internetAddress.address);
       }
     }
@@ -92,7 +92,10 @@ Widget getFileIcon(String extn) {
     case 'jpeg':
       return SvgPicture.asset(
         'assets/icons/jpeg.svg',
-        colorFilter: ColorFilter.mode( Colors.cyanAccent, BlendMode.srcIn, ),
+        colorFilter: ColorFilter.mode(
+          Colors.cyanAccent,
+          BlendMode.srcIn,
+        ),
         width: 30,
         height: 30,
       );
@@ -105,14 +108,20 @@ Widget getFileIcon(String extn) {
     case 'exe':
       return SvgPicture.asset(
         'assets/icons/exe.svg',
-        colorFilter: ColorFilter.mode( Colors.blueAccent, BlendMode.srcIn, ),
+        colorFilter: ColorFilter.mode(
+          Colors.blueAccent,
+          BlendMode.srcIn,
+        ),
         width: 30,
         height: 30,
       );
     case 'apk':
       return SvgPicture.asset(
         'assets/icons/android.svg',
-        colorFilter: ColorFilter.mode( Colors.greenAccent.shade400, BlendMode.srcIn, ),
+        colorFilter: ColorFilter.mode(
+          Colors.greenAccent.shade400,
+          BlendMode.srcIn,
+        ),
         width: 30,
         height: 30,
       );
@@ -128,7 +137,6 @@ Widget getFileIcon(String extn) {
         size: 30,
         color: Colors.orangeAccent,
       );
-
     default:
       return SvgPicture.asset(
         'assets/icons/file.svg',
@@ -154,10 +162,13 @@ getStatusWidget(RxString status, idx) {
   }
 }
 
-storeHistory(String savePath) async{
-  if(FastDB.getFileInfo()== null){FastDB.userBuilder.fileInfo = List.empty();}
- FastDB.putFileInfo([InfoObjectBuilder(filePath: savePath, date: DateTime.now().toString())]);
-await FastDB.flush();
+storeHistory(String savePath) async {
+  if (FastDB.getReceivedHistory() == null) {
+    FastDB.userBuilder.receivedHistory = List.empty();
+  }
+  FastDB.putFileInfo(
+      [InfoObjectBuilder(filePath: savePath, date: DateTime.now().toString())]);
+  await FastDB.flush();
 }
 
 // Future<void> storeSentFileHistory(List<String?> files) async {
@@ -166,47 +177,43 @@ await FastDB.flush();
 //  await FastDB.flush();
 Future<void> storeSentDocumentHistory(List<String?> docs,
     {String type = "file"}) async {
-  if(FastDB.getSentHistory()== null){FastDB.userBuilder.sentHistory = List.empty();}
-  List<Info> sentFiles = FastDB.getSentHistory()??[];
+  if (FastDB.getSentHistory() == null) {
+    FastDB.userBuilder.sentHistory = List.empty();
+  }
+  List<Info> sentFiles = FastDB.getSentHistory() ?? [];
   sentFiles.insertAll(
     0,
-    [for(var doc in docs)
-     Info(InfoObjectBuilder(
-        filePath: doc,
-        date: DateTime.now().toString(),
-        type: type,
-      ).toBytes())],
+    [
+      for (var doc in docs)
+        Info(InfoObjectBuilder(
+          filePath: doc,
+          date: DateTime.now().toString(),
+          type: type,
+        ).toBytes())
+    ],
   );
 }
 
-getSentFileHistory(){
-  return FastDB.getSentHistory();
-}
-
-getHistory(){
-  return FastDB.getFileInfo();
-}
-
-clearSentHistory()async{
+clearSentHistory() async {
   FastDB.userBuilder.sentHistory = List.empty();
   await FastDB.flush();
 }
 
-clearHistory() async {
-  FastDB.userBuilder.fileInfo = List.empty();
+clearReceivedHistory() async {
+  FastDB.userBuilder.receivedHistory = List.empty();
   await FastDB.flush();
 }
 
-String getDateString(DateTime date) {
-  String day = "${date.day}".padLeft(2, '0');
-  String month = "${date.month}";
-  String year = "${date.year}";
-  String hour = date.hour > 12 ? "${date.hour - 12}" : "${date.hour}";
-  String period = TimeOfDay.fromDateTime(date).period.name;
-  String minute = "${date.minute}".padLeft(2, '0');
-  String dateString = "$day-$month-$year " "$hour-$minute $period";
-  return dateString;
-}
+// String getDateString(DateTime date) {
+//   String day = "${date.day}".padLeft(2, '0');
+//   String month = "${date.month}";
+//   String year = "${date.year}";
+//   String hour = date.hour > 12 ? "${date.hour - 12}" : "${date.hour}";
+//   String period = TimeOfDay.fromDateTime(date).period.name;
+//   String minute = "${date.minute}".padLeft(2, '0');
+//   String dateString = "$day-$month-$year " "$hour-$minute $period";
+//   return dateString;
+// }
 
 processReceiversData(Map<String, dynamic> newReceiverData) {
   var inst = GetIt.I.get<ReceiverDataController>();

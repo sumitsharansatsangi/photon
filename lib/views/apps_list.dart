@@ -15,7 +15,7 @@ class AppsList extends StatefulWidget {
 }
 
 class _AppsListState extends State<AppsList> {
-  // static const platform = MethodChannel('dev.abhi.photon');
+  // static const platform = MethodChannel('com.kumpali.photon');
   final future = DeviceApps.getInstalledApplications(includeAppIcons: true);
   List apps = [];
   List<String> paths = [];
@@ -35,7 +35,6 @@ class _AppsListState extends State<AppsList> {
 //       return "";
 //     }
 //   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +99,7 @@ class _AppsListState extends State<AppsList> {
                             builder: ((context, ListTileState value, child) =>
                                 ListTile(
                                   selected: value.isSelected[item],
-                                  onTap: () async{
+                                  onTap: () async {
                                     value.isSelect(item);
                                     if (value.isSelected[item]) {
                                       // var path = await _getAppPath(

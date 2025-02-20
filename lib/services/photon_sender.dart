@@ -39,7 +39,7 @@ class PhotonSender {
   // only for SAF document files
   static List<String?> _decodedFileNames = [];
 
-  static const platform = MethodChannel('dev.abhi.photon');
+  static const platform = MethodChannel('com.kumpali.photon');
 
   static void setRawText(txt) {
     _rawText = txt;
@@ -327,7 +327,7 @@ class PhotonSender {
             request.response.close();
             return;
           }
-           String type = "file";
+          String type = "file";
           if (isFolder) {
             type = "folder";
           } else if (isRawText) {
@@ -345,7 +345,7 @@ class PhotonSender {
           request.response.write(jsonEncode({"raw_text": _rawText}));
           request.response.close();
         } else {
-           // uri should be in format $protocol://ip:port/secretcode/file-index
+          // uri should be in format $protocol://ip:port/secretcode/file-index
           if (!validateToken(request)) {
             request.response.write("Invalid token4");
             request.response.close();
@@ -452,7 +452,7 @@ class PhotonSender {
     try {
       await _server.close();
       await FileUtils.clearCache();
-       if (deviceService != null) {
+      if (deviceService != null) {
         await deviceService!.stopAdvertising();
       }
     } catch (e) {

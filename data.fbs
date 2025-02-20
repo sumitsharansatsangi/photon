@@ -8,7 +8,7 @@ table User {
   username: string;
   avatar_path: string;
   sent_history: [Info];
-  file_info: [Info];
+  received_history: [Info];
   is_intro_read: bool;
   query_packages: bool;
   is_dark_theme: bool;

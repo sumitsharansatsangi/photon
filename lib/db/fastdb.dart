@@ -36,8 +36,8 @@ class FastDB {
       if (bytes.isNotEmpty) {
         db.User user = db.User(bytes);
         final List<db.InfoObjectBuilder> sentHistory =  user.sentHistory == null || user.sentHistory!.isEmpty ? []:  [ for (final history in user.sentHistory!) db.InfoObjectBuilder(filePath: history.filePath,date: history.date)]; 
-        final List<db.InfoObjectBuilder> fileInfo =  user.fileInfo == null || user.fileInfo!.isEmpty ? []:  [ for (final history in user.fileInfo!) db.InfoObjectBuilder(filePath: history.filePath,date: history.date)];
-        userBuilder = db.UserObjectBuilder(username: user.username, avatarPath: user.avatarPath, sentHistory: sentHistory, isIntroRead: user.isIntroRead, fileInfo: fileInfo,
+        final List<db.InfoObjectBuilder> receivedHistory=  user.receivedHistory == null || user.receivedHistory!.isEmpty ? []:  [ for (final history in user.receivedHistory!) db.InfoObjectBuilder(filePath: history.filePath,date: history.date)];
+        userBuilder = db.UserObjectBuilder(username: user.username, avatarPath: user.avatarPath, sentHistory: sentHistory, isIntroRead: user.isIntroRead, receivedHistory: receivedHistory,
          );
       }else{
      userBuilder = db.UserObjectBuilder();
@@ -80,9 +80,11 @@ class FastDB {
     return userBuilder.protocol;
  }
 
- static List<db.Info>? getFileInfo(){
-  if(userBuilder.fileInfo == null) return null;
-    return  [ for(final info in  userBuilder.fileInfo! ) db.Info(info.toBytes())];
+ static List<db.Info>? getReceivedHistory(){
+  if(userBuilder.receivedHistory == null) return null;
+    return  [ for(final history in  userBuilder.receivedHistory! ) db.Info(history.toBytes())];
+  // if(userBuilder.fileInfo == null) return null;
+  //   return  [ for(final info in  userBuilder.fileInfo! ) db.Info(info.toBytes())];
  }
   static List<db.Info>? getSentHistory() {
     if(userBuilder.sentHistory == null) return null;
@@ -126,7 +128,7 @@ class FastDB {
   }
 
   static void putFileInfo(List<db.InfoObjectBuilder> info) {
-    userBuilder.fileInfo = [...userBuilder.fileInfo!, ...info];
+    userBuilder.receivedHistory = [...userBuilder.receivedHistory!, ...info];
   }
 
   static Future<void> flush() async{

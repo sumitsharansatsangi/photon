@@ -1,0 +1,1 @@
+/home/sumit/AndroidStudioProjects/photon/build/app/intermediates/cxx/Debug/533r3f40/obj/armeabi-v7a

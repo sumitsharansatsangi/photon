@@ -41,7 +41,7 @@ dependencies:
     git: https://github.com/kumsumit/path_provider.git
   get_it: ^8.0.3
   get: ^4.6.7
-  path: ^1.8.3
+  path: ^1.9.0
   animated_splash_screen:
   flex_color_scheme:
   url_launcher:
@@ -68,10 +68,13 @@ dependencies:
   qr_flutter:
     git: https://github.com/kumsumit/qr.flutter.git
   graphic: ^2.2.1
-  saf_util: ^0.6.2
-  saf_stream: ^0.11.1
+  saf_util:
+    git: https://github.com/sumitsharansatsangi/saf_util.git
+  saf_stream:
+    git: https://github.com/sumitsharansatsangi/saf_stream.git
   open_settings_plus: ^0.4.0
-  bonsoir: ^5.1.11
+  bonsoir:
+    git: https://github.com/kumsumit/bonsoir.git
   pointycastle: ^3.9.1
   basic_utils:
   convert:
@@ -104,7 +107,7 @@ dependency_overrides:
 msix_config:
   display_name: Photon
   publisher_display_name: N/A
-  identity_name: dev.abhi.photon
+  identity_name: com.kumpali.photon
   msix_version: 1.1.1.0
   logo_path: assets\images\icon.png
   capabilities: internetClient, internetServer
