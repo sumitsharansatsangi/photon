@@ -8,7 +8,6 @@ import 'package:photon/components/dialogs.dart';
 import 'package:photon/controllers/controllers.dart';
 import 'package:photon/models/sender_model.dart';
 import 'package:photon/services/photon_sender.dart';
-// import 'package:qr_flutter/qr_flutter.dart';
 import 'package:photon/db/fastdb.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -37,16 +36,16 @@ class _SharePageState extends State<SharePage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
-    if (didPop) return; // If already popped, do nothing.
+        if (didPop) return; // If already popped, do nothing.
 
-    bool willPop = await sharePageWillPopDialog(context);
-    if (willPop) {
-      GetIt.I.get<ReceiverDataController>().receiverMap.clear();
-      if (context.mounted) {
-        Navigator.of(context).pop();
-      }
-    }
-  },
+        bool willPop = await sharePageWillPopDialog(context);
+        if (willPop) {
+          GetIt.I.get<ReceiverDataController>().receiverMap.clear();
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
       child: ValueListenableBuilder(
           valueListenable: AdaptiveTheme.of(context).modeChangeNotifier,
           builder: (_, AdaptiveThemeMode mode, __) {
@@ -91,25 +90,9 @@ class _SharePageState extends State<SharePage> {
                               SizedBox(
                                 width: width > 720 ? 200 : 100,
                                 height: width > 720 ? 200 : 100,
-                                child: QrImageView(
-                            dataModuleStyle: QrDataModuleStyle(
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? const Color.fromARGB(255, 214, 255, 248)
-                                    : const Color.fromARGB(255, 1, 29, 17)),
-                            embeddedImage: MemoryImage(senderModel.avatar!),
-                            embeddedImageStyle: const QrEmbeddedImageStyle(
-                                safeArea: true,
-                                embeddedImageShape: EmbeddedImageShape.circle),
-                            size: 180,
-                            eyeStyle: const QrEyeStyle(
-                                color: Color.fromARGB(255, 10, 205, 219)),
-                            data: PhotonSender.getPhotonLink,
-                            backgroundColor:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? const Color.fromARGB(115, 10, 55, 139)
-                                    : const Color.fromARGB(136, 165, 220, 230),
-                          ),
+                                child: QrImageViewWidget(
+                                  data: PhotonSender.getPhotonLink,
+                                ),
                               )
                             ],
                           )
@@ -118,16 +101,14 @@ class _SharePageState extends State<SharePage> {
                           SizedBox(
                             width: 160,
                             height: 160,
-                            child: QrImageView(
-                              eyeStyle: const QrEyeStyle(color: Colors.black),
+                            child: QrImageViewWidget(
                               data: PhotonSender.getPhotonLink,
-                              backgroundColor: Colors.white,
                             ),
                           )
                         },
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: FastDB.getEnableHttps()== true
+                          child: FastDB.getEnableHttps() == true
                               ? Text(
                                   "You are using HTTPS. Please make sure receiver also has photon version 3.0.0 or Above\nAsk receiver to tap on receive button",
                                   style: TextStyle(
@@ -256,7 +237,33 @@ class _SharePageState extends State<SharePage> {
                   ),
                 ));
           }),
-     
+    );
+  }
+}
+
+class QrImageViewWidget extends StatelessWidget {
+  final String data;
+
+  const QrImageViewWidget({
+    super.key,
+    required this.data,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return QrImageView(
+      data: data,
+      dataModuleStyle: QrDataModuleStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color.fromARGB(255, 214, 255, 248)
+              : const Color.fromARGB(255, 1, 29, 17)),
+      embeddedImageStyle: const QrEmbeddedImageStyle(
+          safeArea: true, embeddedImageShape: EmbeddedImageShape.circle),
+      size: 180,
+      eyeStyle: const QrEyeStyle(color: Color.fromARGB(255, 10, 205, 219)),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color.fromARGB(115, 10, 55, 139)
+          : const Color.fromARGB(136, 165, 220, 230),
     );
   }
 }

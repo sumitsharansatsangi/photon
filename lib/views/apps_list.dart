@@ -1,6 +1,5 @@
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
 import 'package:photon/components/constants.dart';
 import 'package:photon/components/snackbar.dart';
 import 'package:photon/services/photon_sender.dart';
@@ -15,26 +14,13 @@ class AppsList extends StatefulWidget {
 }
 
 class _AppsListState extends State<AppsList> {
-  // static const platform = MethodChannel('com.kumpali.photon');
   final future = DeviceApps.getInstalledApplications(includeAppIcons: true);
   List apps = [];
   List<String> paths = [];
   TextEditingController searchController = TextEditingController();
-  Map<String, String> appToFilePathMapping = {};
   List<Application> searchData = [];
   late List<Application> data;
   bool isSearched = false;
-
-//  Future<String> _getAppPath(String packageName) async {
-//     try {
-//       final String result = await platform
-//           .invokeMethod('getAppPath', {'packageName': packageName});
-//       return result;
-//     } on PlatformException catch (e) {
-//       debugPrint("Failed to get app path: '${e.message}'.");
-//       return "";
-//     }
-//   }
 
   @override
   Widget build(BuildContext context) {
@@ -99,11 +85,9 @@ class _AppsListState extends State<AppsList> {
                             builder: ((context, ListTileState value, child) =>
                                 ListTile(
                                   selected: value.isSelected[item],
-                                  onTap: () async {
+                                  onTap: () {
                                     value.isSelect(item);
                                     if (value.isSelected[item]) {
-                                      // var path = await _getAppPath(
-                                      //     apps[item].packageName);
                                       paths.add(apps[item].apkFilePath);
                                     } else {
                                       paths.remove(apps[item].apkFilePath);

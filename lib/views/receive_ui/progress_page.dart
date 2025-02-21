@@ -459,7 +459,7 @@ class _ProgressPageState extends State<ProgressPage> {
                                                                       720
                                                                   ? 18
                                                                   : 10),
-                                                          child: Icon(Icons
+                                                          child: const Icon(Icons
                                                               .done_rounded))
                                                     },
                                                   ],
